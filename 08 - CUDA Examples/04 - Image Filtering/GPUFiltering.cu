@@ -1,3 +1,6 @@
+const unsigned char BLOCK_DIM_X = 16;
+const unsigned char BLOCK_DIM_Y = 16;
+
 __device__
 unsigned char GetPixel(unsigned char * src, unsigned int w, unsigned int h, int x, int y, int c)
 {
@@ -73,7 +76,7 @@ void sobel_kernel_shared(unsigned char * src, unsigned char * dest, unsigned int
 	unsigned int ty = threadIdx.y;
 	unsigned int c = blockIdx.z;
 
-	__shared__ unsigned char pixels[16 + 2][16 + 2];
+	__shared__ unsigned char pixels[BLOCK_DIM_Y + 2][BLOCK_DIM_X + 2];
 	for (unsigned int i = blockDim.x * ty + tx;
 		i < (blockDim.x + 2) * (blockDim.y + 2);
 		i += blockDim.x * blockDim.y)
@@ -119,12 +122,26 @@ extern "C"
 void GPUFiltering(unsigned char * src, unsigned char * dest, unsigned int w, unsigned int h)
 {
 	// преобразование в оттенки серого
-	dim3 BlockDim1(16, 16, 1);
+	dim3 BlockDim1(BLOCK_DIM_X, BLOCK_DIM_Y, 1);
 	dim3 GridDim1((w - 1)/BlockDim1.x + 1, (h - 1)/BlockDim1.y + 1, 1);
-	grayscale_kernel<<<GridDim1, BlockDim1>>>(src, dest, w, h);
+	grayscale_kernel<<<GridDim1, BlockDim1>>>(src, src, w, h);
 
 	// фильтр Собеля
-	dim3 BlockDim2(16, 16, 1);
+	dim3 BlockDim2(BLOCK_DIM_X, BLOCK_DIM_Y, 1);
 	dim3 GridDim2((w - 1) / BlockDim2.x + 1, (h - 1) / BlockDim2.y + 1, 3);
-	sobel_kernel_shared<<<GridDim2, BlockDim2>>>(dest, src, w, h);
+	sobel_kernel<<<GridDim2, BlockDim2>>>(src, dest, w, h);
+}
+
+extern "C"
+void GPUFilteringShared(unsigned char * src, unsigned char * dest, unsigned int w, unsigned int h)
+{
+	// преобразование в оттенки серого
+	dim3 BlockDim1(BLOCK_DIM_X, BLOCK_DIM_Y, 1);
+	dim3 GridDim1((w - 1) / BlockDim1.x + 1, (h - 1) / BlockDim1.y + 1, 1);
+	grayscale_kernel <<<GridDim1, BlockDim1 >>>(src, src, w, h);
+
+	// фильтр Собеля
+	dim3 BlockDim2(BLOCK_DIM_X, BLOCK_DIM_Y, 1);
+	dim3 GridDim2((w - 1) / BlockDim2.x + 1, (h - 1) / BlockDim2.y + 1, 3);
+	sobel_kernel_shared<<<GridDim2, BlockDim2 >>>(src, dest, w, h);
 }

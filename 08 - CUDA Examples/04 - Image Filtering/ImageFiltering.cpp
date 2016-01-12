@@ -16,10 +16,13 @@
         exit(-1); }
 
 extern "C"
+void CPUFiltering(unsigned char * src, unsigned char * dest, unsigned int w, unsigned int h);
+
+extern "C"
 void GPUFiltering(unsigned char * src, unsigned char * dest, unsigned int w, unsigned int h);
 
 extern "C"
-void CPUFiltering(unsigned char * src, unsigned char * dest, unsigned int w, unsigned int h);
+void GPUFilteringShared(unsigned char * src, unsigned char * dest, unsigned int w, unsigned int h);
 
 int main(int argc, char* argv[])
 {
@@ -77,9 +80,9 @@ int main(int argc, char* argv[])
 	cudaEventRecord(evt3, 0);
 	GPUFiltering(dev_origin, dev_result, original_image.width, original_image.height);
 
-	// копирование обработанного изображения в видеопамять
+	// копирование обработанного изображения из видеопамяти
 	cudaEventRecord(evt4, 0);
-	CUDA_CHECK(cudaMemcpy(result_image.image, dev_origin, img_size, cudaMemcpyDeviceToHost));
+	CUDA_CHECK(cudaMemcpy(result_image.image, dev_result, img_size, cudaMemcpyDeviceToHost));
 
 	// освобождаем видеопамять
 	cudaEventRecord(evt5, 0);
