@@ -16,13 +16,12 @@ void grayscale_kernel(unsigned char * src, unsigned char * dest, unsigned int w,
 
 	if (y < h && x < w)
 	{
-		float luma = 0;
-		luma += 0.2126f * src[3 * (w * y + x) + 0];
-		luma += 0.7152f * src[3 * (w * y + x) + 1];
-		luma += 0.0722f * src[3 * (w * y + x) + 2];
+		float luma = 0
+			+ 0.2126f * GetPixel(src, w, h, x, y, 0)
+			+ 0.7152f * GetPixel(src, w, h, x, y, 1)
+			+ 0.0722f * GetPixel(src, w, h, x, y, 2);
 		
 		unsigned char l = (unsigned char)luma;
-		
 		dest[3 * (w * y + x) + 0] = l;
 		dest[3 * (w * y + x) + 1] = l;
 		dest[3 * (w * y + x) + 2] = l;
@@ -44,45 +43,21 @@ void sobel_kernel(unsigned char * src, unsigned char * dest, unsigned int w, uns
 			-2   0  +2                   0   0   0
 			-1   0  +1                  +1  +2  +1
 		*/
-		float Gx = 0;
-		float Gy = 0;
+		float Gx = 0
+			- 1.0 * GetPixel(src, w, h, x - 1, y - 1, c)
+			- 2.0 * GetPixel(src, w, h, x - 1, y + 0, c)
+			- 1.0 * GetPixel(src, w, h, x - 1, y + 1, c)
+			+ 1.0 * GetPixel(src, w, h, x + 1, y - 1, c)
+			+ 2.0 * GetPixel(src, w, h, x + 1, y + 0, c)
+			+ 1.0 * GetPixel(src, w, h, x + 1, y + 1, c);
 
-		if (x > 1)
-		{
-			if (y > 1)
-				Gx -= src[3 * (w * (y - 1) + (x - 1)) + c];
-			Gx -= 2.0f * src[3 * (w * y + (x - 1)) + c];
-			if (y < h - 1)
-				Gx -= src[3 * (w * (y + 1) + (x - 1)) + c];
-		}
-
-		if (x < w - 1)
-		{
-			if (y > 1)
-				Gx += src[3 * (w * (y - 1) + (x + 1)) + c];
-			Gx += 2.0f * src[3 * (w * y + (x + 1)) + c];
-			if (y < h - 1)
-				Gx += src[3 * (w * (y + 1) + (x + 1)) + c];
-		}
-
-		if (y > 1)
-		{
-			if (x > 1)
-				Gy -= src[3 * (w * (y - 1) + (x - 1)) + c];
-			Gx -= 2.0f * src[3 * (w * (y - 1) + x) + c];
-			if (x < w - 1)
-				Gx -= src[3 * (w * (y - 1) + (x + 1)) + c];
-
-		}
-
-		if (y < h - 1)
-		{
-			if (x > 1)
-				Gy += src[3 * (w * (y + 1) + (x - 1)) + c];
-			Gx += 2.0f * src[3 * (w * (y + 1) + x) + c];
-			if (x < w - 1)
-				Gx += src[3 * (w * (y + 1) + (x + 1)) + c];
-		}
+		float Gy = 0
+			- 1.0 * GetPixel(src, w, h, x - 1, y - 1, c)
+			- 2.0 * GetPixel(src, w, h, x + 0, y - 1, c)
+			- 1.0 * GetPixel(src, w, h, x + 1, y - 1, c)
+			+ 1.0 * GetPixel(src, w, h, x - 1, y + 1, c)
+			+ 2.0 * GetPixel(src, w, h, x + 0, y + 1, c)
+			+ 1.0 * GetPixel(src, w, h, x + 1, y + 1, c);
 
 		float G = sqrt(Gx*Gx + Gy*Gy);
 		dest[3 * (w * y + x) + c] = G > 32 ? 255 : 0;
