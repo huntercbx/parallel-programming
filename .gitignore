@@ -12,12 +12,15 @@
 *.vcxproj.user
 *.sdf
 *.opensdf
+*.VC.db
+*.VC.opendb
 *.tlb
 *.ncb
 *.suo
 *.log
 *.tlog
 *.ppm
+
 
 #individual files
 BuildLog.htm

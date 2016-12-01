@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <string.h>
 
-const size_t BUFFER_SIZE = 20;
+const int BUFFER_SIZE = 20;
 const size_t N_TYPES = 3;
 const char message[N_TYPES][80] = {
 	"recieived 2 items of contiguous(7) datatype",
@@ -39,17 +39,17 @@ int main( int argc, char *argv[])
 	{
 		// инициализация исходного вектора
 		int *A = new int[BUFFER_SIZE];
-		for (size_t i = 0; i < BUFFER_SIZE; ++i)
-			A[i] = i+1;
+		for (int i = 0; i < BUFFER_SIZE; ++i)
+			A[i] = i + 1;
 
 		// печать исходного вектора
 		printf("%s\n", "source data");
-		for (size_t i = 0; i < BUFFER_SIZE; ++i)
+		for (int i = 0; i < BUFFER_SIZE; ++i)
 			printf("%3d", A[i]);
 		printf("\n\n");
 
 		// отправка данных наследуемых типов
-		for (size_t i = 0; i < N_TYPES; ++i)
+		for (int i = 0; i < N_TYPES; ++i)
 			MPI_Send(A, 2, types[i], 1, i, MPI_COMM_WORLD);
 
 		// удаление исходного вектора
@@ -62,18 +62,18 @@ int main( int argc, char *argv[])
 		int *B = new int[BUFFER_SIZE];
 		MPI_Status status;
 
-		for (size_t i = 0; i < N_TYPES; ++i)
+		for (int i = 0; i < N_TYPES; ++i)
 		{
 			// обнуление буфера приемника
-			for (size_t j = 0; j < BUFFER_SIZE; ++j)
+			for (int j = 0; j < BUFFER_SIZE; ++j)
 				B[j] = 0;
 
 			// получение данных
-			MPI_Recv(B, BUFFER_SIZE, MPI_INT, 0, i, MPI_COMM_WORLD, &status);
+			MPI_Recv(B, BUFFER_SIZE, types[i], 0, i, MPI_COMM_WORLD, &status);
 
 			// печать принятых данных
 			printf("%s\n", message[i]);
-			for (size_t j = 0; j < BUFFER_SIZE; ++j)
+			for (int j = 0; j < BUFFER_SIZE; ++j)
 				printf("%3d", B[j]);
 			printf("\n\n");
 		}

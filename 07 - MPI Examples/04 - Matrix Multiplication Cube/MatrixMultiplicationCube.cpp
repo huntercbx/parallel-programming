@@ -27,11 +27,11 @@ void PrintMatrix(double *m, size_t rows, size_t cols)
 }
 
 void CreateSubmatrixType(MPI_Datatype *type,
-	size_t n_rows, size_t n_cols,
-	size_t block_rows, size_t block_cols)
+	int n_rows, int n_cols,
+	int block_rows, int block_cols)
 {
 	// объем памяти занимаемый типом данных MPI_DOUBLE
-	int double_lb, double_extent;
+	MPI_Aint double_lb, double_extent;
 	MPI_Type_get_extent(MPI_DOUBLE, &double_lb, &double_extent);
 
 	MPI_Datatype types[2];
@@ -39,7 +39,7 @@ void CreateSubmatrixType(MPI_Datatype *type,
 	types[1] = MPI_UB;
 
 	int blocklengths[2] = {1, 1};
-	int displacements[2] = {0, double_extent*block_cols};
+	MPI_Aint displacements[2] = {0, double_extent*block_cols};
 	MPI_Type_create_struct(2, blocklengths, displacements, types, type);
 	MPI_Type_commit(type);
 }
@@ -63,7 +63,7 @@ int main( int argc, char *argv[])
 	MPI_Cart_create(MPI_COMM_WORLD, GRID_DIM, dims, periods, DO_NOT_REORDER, &comm3D);
 
 	// определяем входные параметры задачи
-	double *A, *B, *C;
+	double *A = nullptr, *B = nullptr, *C = nullptr;
 	int matrix_dim[3] = {10, 10, 10};
 	bool invalid_parameters = false;
 	if (myrank == 0)
@@ -96,7 +96,7 @@ int main( int argc, char *argv[])
 		return -1;
 	}
 
-	size_t A_rows = matrix_dim[0], AA_rows = matrix_dim[0]/dims[0],
+	int    A_rows = matrix_dim[0], AA_rows = matrix_dim[0]/dims[0],
 	       A_cols = matrix_dim[1], AA_cols = matrix_dim[1]/dims[1],
 	       B_rows = matrix_dim[1], BB_rows = matrix_dim[1]/dims[1],
 	       B_cols = matrix_dim[2], BB_cols = matrix_dim[2]/dims[2],
@@ -196,12 +196,12 @@ int main( int argc, char *argv[])
 
 	MPI_Bcast(BB, BB_rows*BB_cols, MPI_DOUBLE, 0, commX);
 
-	for (size_t i = 0; i < CC_rows; ++i)
+	for (int i = 0; i < CC_rows; ++i)
 	{
-		for (size_t j = 0; j < CC_cols; ++j)
+		for (int j = 0; j < CC_cols; ++j)
 		{
 			CC[i*CC_cols+j] = 0.0;
-			for (size_t k = 0; k < AA_cols; ++k)
+			for (int k = 0; k < AA_cols; ++k)
 				CC[i*CC_cols+j] += AA[i*AA_rows+k]*BB[k*BB_rows + j];
 		}
 	}

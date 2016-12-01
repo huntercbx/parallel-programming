@@ -1,6 +1,7 @@
 #include <mpi.h>
 #include <stdio.h>
 #include <string.h>
+#include <windows.h>
 
 int main( int argc, char *argv[])
 {
@@ -19,7 +20,8 @@ int main( int argc, char *argv[])
 	{
 		// выполняется нулевым процессом
 		strcpy_s(message,"Hello, there");
-		MPI_Send(message, strlen(message)+1,
+		int count = static_cast<int>(strlen(message)) + 1;
+		MPI_Send(message, count,
 			MPI_CHAR, 1, 99, MPI_COMM_WORLD);
 	}
 	else if (myrank == 1)
