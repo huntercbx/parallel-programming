@@ -28,7 +28,7 @@ using namespace std;
 vector<string> program_log;
 
 // время запуска основной програмы
-double t0 = 0; 
+double t0 = 0;
 
 ////////////////////////////////////////////////////////////////////////////////
 // Чтение исходного массива из файла
@@ -49,31 +49,31 @@ void WriteLog(const string& message)
 ////////////////////////////////////////////////////////////////////////////////
 void ReadFile(const string& filename, vector<string>& v)
 {
-   	ifstream file(filename);
-    if (!file.is_open())
-    {
-        cout << "Can not open file \"" << filename << "\"" << endl;
-        exit(EXIT_FAILURE);
-    }
-    cout << "Loading \"" << filename << "\" ";
+	ifstream file(filename);
+	if (!file.is_open())
+	{
+		cout << "Can not open file \"" << filename << "\"" << endl;
+		exit(EXIT_FAILURE);
+	}
+	cout << "Loading \"" << filename << "\" ";
 
 	size_t N = 0;
-    file >> N;
-    v.reserve(N);
+	file >> N;
+	v.reserve(N);
 
-    string str;
-    while (getline(file, str))
-    {
-        if (!str.empty())
-            v.push_back(str);
+	string str;
+	while (getline(file, str))
+	{
+		if (!str.empty())
+			v.push_back(str);
 
-        // обновляем прогресс
-        if (v.size() % PROGRESS_UPDATE == 0)
-            cout << ".";
-    }
+		// обновляем прогресс
+		if (v.size() % PROGRESS_UPDATE == 0)
+			cout << ".";
+	}
 
-    file.close();
-    cout << endl;
+	file.close();
+	cout << endl;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -81,26 +81,26 @@ void ReadFile(const string& filename, vector<string>& v)
 ////////////////////////////////////////////////////////////////////////////////
 void WriteFile(const string& filename, const vector<string>& v)
 {
-   	ofstream file(filename);
-    if (!file.is_open())
-    {
-        cout << "Can not write to file \"" << filename << "\"" << endl;
-        exit(EXIT_FAILURE);
-    }
-    cout << "Saving \"" << filename << "\" ";
+	ofstream file(filename);
+	if (!file.is_open())
+	{
+		cout << "Can not write to file \"" << filename << "\"" << endl;
+		exit(EXIT_FAILURE);
+	}
+	cout << "Saving \"" << filename << "\" ";
 
-    file << v.size() << endl;
-    for (size_t i = 0; i < v.size(); ++i)
-    {
-        file << v[i] << endl;
+	file << v.size() << endl;
+	for (size_t i = 0; i < v.size(); ++i)
+	{
+		file << v[i] << endl;
 
-        // обновляем прогресс
-        if (i % PROGRESS_UPDATE == 0)
-            cout << ".";
-    }
+		// обновляем прогресс
+		if (i % PROGRESS_UPDATE == 0)
+			cout << ".";
+	}
 
-    file.close();
-    cout << endl;
+	file.close();
+	cout << endl;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -108,12 +108,12 @@ void WriteFile(const string& filename, const vector<string>& v)
 ////////////////////////////////////////////////////////////////////////////////
 void MySort(vector<string>& v)
 {
-    WriteLog("start sorting");
+	WriteLog("start sorting");
 
-    // стандартную сортировку надо заменить на свой вариант параллельной сортировки
-    sort(v.begin(), v.end());
+	// стандартную сортировку надо заменить на свой вариант параллельной сортировки
+	sort(v.begin(), v.end());
 
-    WriteLog("end sorting");
+	WriteLog("end sorting");
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -121,16 +121,16 @@ void MySort(vector<string>& v)
 ////////////////////////////////////////////////////////////////////////////////
 void TestSort(const vector<string>& v)
 {
-    cout << "Testing - ";
+	cout << "Testing - ";
 
-    for (size_t i = 1; i < v.size(); ++i)
-        if (v[i] < v[i-1])
-        {
-            cout << "failure" << endl;
-            return;
-        }
+	for (size_t i = 1; i < v.size(); ++i)
+		if (v[i] < v[i-1])
+		{
+			cout << "failure" << endl;
+			return;
+		}
 
-    cout << "passed" << endl;
+	cout << "passed" << endl;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -138,14 +138,14 @@ void TestSort(const vector<string>& v)
 ////////////////////////////////////////////////////////////////////////////////
 int main(int argc, char *argv[])
 {
-    // время запуска основной програмы
-    double t0 = omp_get_wtime();
+	// время запуска основной програмы
+	double t0 = omp_get_wtime();
 
-    vector<string> v;
+	vector<string> v;
 
-    // обработка параметров командной строки
-    string input_filename(INPUT_FILENAME);
-    string output_filename(OUTPUT_FILENAME);
+	// обработка параметров командной строки
+	string input_filename(INPUT_FILENAME);
+	string output_filename(OUTPUT_FILENAME);
 	string log_filename(LOG_FILENAME);
 
 	if (argc >= 2)
@@ -153,28 +153,28 @@ int main(int argc, char *argv[])
 	if (argc >= 3)
 		output_filename = string(argv[2]);
 
-    // чтение исходных данных из файла
-    ReadFile(input_filename, v);
+	// чтение исходных данных из файла
+	ReadFile(input_filename, v);
 
-    // время начала сортировки
-    cout << "Start sorting (" << v.size() << ")" << endl;
-    double t1 = omp_get_wtime();
+	// время начала сортировки
+	cout << "Start sorting (" << v.size() << ")" << endl;
+	double t1 = omp_get_wtime();
 
-    // сортировка
-    MySort(v);
+	// сортировка
+	MySort(v);
 
-    // время окончания сортировки
-    double t2 = omp_get_wtime();
-    cout << "Sorting time " << (t2-t1) << endl;
+	// время окончания сортировки
+	double t2 = omp_get_wtime();
+	cout << "Sorting time " << (t2-t1) << endl;
 
-    // тестирование результатов сортировки
-    TestSort(v);
+	// тестирование результатов сортировки
+	TestSort(v);
 
-    // запись результатов в файл
-    WriteFile(output_filename, v);
+	// запись результатов в файл
+	WriteFile(output_filename, v);
 
-    // запись журнала работы в файл
+	// запись журнала работы в файл
 	WriteFile(log_filename, program_log);
 
-    return 0;
+	return 0;
 }

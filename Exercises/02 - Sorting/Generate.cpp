@@ -26,24 +26,24 @@ int main(int argc, char *argv[])
 	if (argc >= 3)
 		seed = atoi(argv[2]);
 
-    cout << "SEED = " << seed << endl;
-    srand(seed);
+	cout << "SEED = " << seed << endl;
+	srand(seed);
 
-   	ofstream file;
+	ofstream file;
 	file.open(FILENAME);
-    cout << "Saving \"" << FILENAME << "\" ";
+	cout << "Saving \"" << FILENAME << "\" ";
 
-    file << N << endl;
-    for (size_t i = 0; i < N; ++i)
-    {
-   		string str;
-        for (size_t j = 0; j < LENGTH; ++j)
+	file << N << endl;
+	for (size_t i = 0; i < N; ++i)
+	{
+		string str;
+		for (size_t j = 0; j < LENGTH; ++j)
 			str += 'A' + rand() % 26;
-        file << str << endl;
+		file << str << endl;
 
-        // обновляем прогресс
-        if (i % PROGRESS_UPDATE == 0)
-            cout << ".";
-    }
-    file.close();
+		// обновляем прогресс
+		if (i % PROGRESS_UPDATE == 0)
+			cout << ".";
+	}
+	file.close();
 }

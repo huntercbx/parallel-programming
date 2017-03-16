@@ -48,7 +48,7 @@ int main(int argc, char *argv[])
 	{
 		if (IsPrime(i))
 		{
-      		#pragma omp atomic
+			#pragma omp atomic
 			++n_prime_numbers;
 		}
 	}
@@ -67,5 +67,5 @@ int main(int argc, char *argv[])
 	printf("Execution time (section)   : %.5f s\n", t2-t1);
 	printf("Timer resolution           : %.5f s\n", omp_get_wtick());
 
-  return 0;
+	return 0;
 }
