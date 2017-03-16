@@ -7,6 +7,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 #include <iostream>
 #include <fstream>
+#include <sstream>
 #include <string>
 #include <vector>
 #include <algorithm>
@@ -15,11 +16,36 @@
 const size_t PROGRESS_UPDATE    = 250000;       // период обновления прогресса
 const char*  INPUT_FILENAME     = "input.txt";  // имя входного файла
 const char*  OUTPUT_FILENAME    = "output.txt"; // имя выходного файла
+const char*  LOG_FILENAME       = "log.txt";    // имя файла журнала
 
 using namespace std;
 
 ////////////////////////////////////////////////////////////////////////////////
-// Чтение исходного массива из файла 
+// Журнал работы программы, по окончании работы записывается в файл журнала.
+// Запись в файл во время работы основоного алгоритма не производится в целях
+// производительности.
+////////////////////////////////////////////////////////////////////////////////
+vector<string> program_log;
+
+// время запуска основной програмы
+double t0 = 0; 
+
+////////////////////////////////////////////////////////////////////////////////
+// Чтение исходного массива из файла
+////////////////////////////////////////////////////////////////////////////////
+void WriteLog(const string& message)
+{
+	std::ostringstream s;
+	s << (omp_get_wtime() - t0) << ", "
+		<< omp_get_thread_num() << ", "
+		<< message;
+
+	#pragma omp critical
+	program_log.push_back(s.str());
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// Чтение исходного массива из файла
 ////////////////////////////////////////////////////////////////////////////////
 void ReadFile(const string& filename, vector<string>& v)
 {
@@ -51,7 +77,7 @@ void ReadFile(const string& filename, vector<string>& v)
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-// Запись отсортированного массива в файл 
+// Запись отсортированного массива в файл
 ////////////////////////////////////////////////////////////////////////////////
 void WriteFile(const string& filename, const vector<string>& v)
 {
@@ -72,7 +98,7 @@ void WriteFile(const string& filename, const vector<string>& v)
         if (i % PROGRESS_UPDATE == 0)
             cout << ".";
     }
-    
+
     file.close();
     cout << endl;
 }
@@ -82,8 +108,12 @@ void WriteFile(const string& filename, const vector<string>& v)
 ////////////////////////////////////////////////////////////////////////////////
 void MySort(vector<string>& v)
 {
+    WriteLog("start sorting");
+
     // стандартную сортировку надо заменить на свой вариант параллельной сортировки
     sort(v.begin(), v.end());
+
+    WriteLog("end sorting");
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -95,7 +125,10 @@ void TestSort(const vector<string>& v)
 
     for (size_t i = 1; i < v.size(); ++i)
         if (v[i] < v[i-1])
+        {
             cout << "failure" << endl;
+            return;
+        }
 
     cout << "passed" << endl;
 }
@@ -105,11 +138,16 @@ void TestSort(const vector<string>& v)
 ////////////////////////////////////////////////////////////////////////////////
 int main(int argc, char *argv[])
 {
+    // время запуска основной програмы
+    double t0 = omp_get_wtime();
+
     vector<string> v;
 
     // обработка параметров командной строки
     string input_filename(INPUT_FILENAME);
     string output_filename(OUTPUT_FILENAME);
+	string log_filename(LOG_FILENAME);
+
 	if (argc >= 2)
 		input_filename = string(argv[1]);
 	if (argc >= 3)
@@ -121,7 +159,7 @@ int main(int argc, char *argv[])
     // время начала сортировки
     cout << "Start sorting (" << v.size() << ")" << endl;
     double t1 = omp_get_wtime();
-    
+
     // сортировка
     MySort(v);
 
@@ -134,6 +172,9 @@ int main(int argc, char *argv[])
 
     // запись результатов в файл
     WriteFile(output_filename, v);
+
+    // запись журнала работы в файл
+	WriteFile(log_filename, program_log);
 
     return 0;
 }
