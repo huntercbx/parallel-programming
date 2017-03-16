@@ -139,7 +139,7 @@ void TestSort(const vector<string>& v)
 int main(int argc, char *argv[])
 {
 	// время запуска основной програмы
-	double t0 = omp_get_wtime();
+	t0 = omp_get_wtime();
 
 	vector<string> v;
 
