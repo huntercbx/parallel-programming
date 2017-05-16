@@ -28,7 +28,6 @@ void filter_kernel(unsigned char * src, unsigned char * dest, unsigned int w, un
 extern "C"
 void Filter(unsigned char * src, unsigned char * dest, unsigned int w, unsigned int h)
 {
-	// код фильтра
 	dim3 BlockDim1(BLOCK_DIM_X, BLOCK_DIM_Y, 1);
 	dim3 GridDim1((w - 1)/BlockDim1.x + 1, (h - 1)/BlockDim1.y + 1, 1);
 	filter_kernel<<<GridDim1, BlockDim1>>>(src, dest, w, h);
