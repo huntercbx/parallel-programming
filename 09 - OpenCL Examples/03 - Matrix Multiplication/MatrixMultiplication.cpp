@@ -1,10 +1,10 @@
-#include <vector>
+п»ї#include <vector>
 #include <CL/cl.h>
 #include "../utils/utils.h"
 
 int main(int argc, char* argv[])
 {
-	// Проверка на наличие устройств с поддержкой OpenCL
+	// РџСЂРѕРІРµСЂРєР° РЅР° РЅР°Р»РёС‡РёРµ СѓСЃС‚СЂРѕР№СЃС‚РІ СЃ РїРѕРґРґРµСЂР¶РєРѕР№ OpenCL
 	cl_uint num_platforms;
 	OPENCL_CHECK(clGetPlatformIDs(1, NULL, &num_platforms));
 	if (num_platforms == 0)
@@ -15,14 +15,14 @@ int main(int argc, char* argv[])
 	cl_platform_id *platforms = new cl_platform_id[num_platforms];
 	OPENCL_CHECK(clGetPlatformIDs(num_platforms, platforms, nullptr));
 
-	// Используем первую платформу и получаем список устройств
+	// РСЃРїРѕР»СЊР·СѓРµРј РїРµСЂРІСѓСЋ РїР»Р°С‚С„РѕСЂРјСѓ Рё РїРѕР»СѓС‡Р°РµРј СЃРїРёСЃРѕРє СѓСЃС‚СЂРѕР№СЃС‚РІ
 	cl_uint num_devices;
 	OPENCL_CHECK(clGetDeviceIDs(platforms[0], CL_DEVICE_TYPE_ALL, 0, nullptr, &num_devices));
 	cl_device_id *devices = new cl_device_id[num_devices];
 	OPENCL_CHECK(clGetDeviceIDs(platforms[0], CL_DEVICE_TYPE_ALL, num_devices, devices, nullptr));
 	cl_device_id device_id = devices[0];
 
-	// Создание контекста вычислений
+	// РЎРѕР·РґР°РЅРёРµ РєРѕРЅС‚РµРєСЃС‚Р° РІС‹С‡РёСЃР»РµРЅРёР№
 	cl_int err;
 	cl_context context = clCreateContext(nullptr, 1, &device_id, nullptr, nullptr, &err);
 	if (!context)
@@ -31,7 +31,7 @@ int main(int argc, char* argv[])
 		return EXIT_FAILURE;
 	}
 
-	// Создание очереди команд (с включенным профилированием)
+	// РЎРѕР·РґР°РЅРёРµ РѕС‡РµСЂРµРґРё РєРѕРјР°РЅРґ (СЃ РІРєР»СЋС‡РµРЅРЅС‹Рј РїСЂРѕС„РёР»РёСЂРѕРІР°РЅРёРµРј)
 	cl_command_queue commands = clCreateCommandQueue(context, device_id, CL_QUEUE_PROFILING_ENABLE, &err);
 	if (!commands)
 	{
@@ -39,17 +39,17 @@ int main(int argc, char* argv[])
 		return EXIT_FAILURE;
 	}
 
-	// Генерация исходных матриц
+	// Р“РµРЅРµСЂР°С†РёСЏ РёСЃС…РѕРґРЅС‹С… РјР°С‚СЂРёС†
 	const unsigned int N = 1000;//211;
 	const unsigned int L = 1000;//101;
 	const unsigned int M = 1000;//151;
 
-	// Размеры матриц в байтах
+	// Р Р°Р·РјРµСЂС‹ РјР°С‚СЂРёС† РІ Р±Р°Р№С‚Р°С…
 	size_t sizeA = N*L * sizeof(float);
 	size_t sizeB = L*M * sizeof(float);
 	size_t sizeC = N*M * sizeof(float);
 
-	// Выделение памяти под матрицы в ОЗУ
+	// Р’С‹РґРµР»РµРЅРёРµ РїР°РјСЏС‚Рё РїРѕРґ РјР°С‚СЂРёС†С‹ РІ РћР—РЈ
 	float *host_A = (float *)malloc(sizeA);
 	float *host_B = (float *)malloc(sizeB);
 	float *host_C = (float *)malloc(sizeC);
@@ -62,10 +62,10 @@ int main(int argc, char* argv[])
 		for (size_t col = 0; col < M; ++col)
 			host_B[row*M + col] = 2.0f;
 
-	// Читаем и строим программу
+	// Р§РёС‚Р°РµРј Рё СЃС‚СЂРѕРёРј РїСЂРѕРіСЂР°РјРјСѓ
 	cl_program program = CreateAndBuildProgram("MultMatrixKernels.cl", context, device_id);
 
-	// Создание ядра в програме для запуска
+	// РЎРѕР·РґР°РЅРёРµ СЏРґСЂР° РІ РїСЂРѕРіСЂР°РјРµ РґР»СЏ Р·Р°РїСѓСЃРєР°
 	cl_kernel kernel = clCreateKernel(program, "mult_matrix_kernel_simple", &err);
 	if (!kernel || err != CL_SUCCESS)
 	{
@@ -73,7 +73,7 @@ int main(int argc, char* argv[])
 		return EXIT_FAILURE;
 	}
 
-	// Выделение видеопамяти под матрицы и копирование исходных матриц в память устройства
+	// Р’С‹РґРµР»РµРЅРёРµ РІРёРґРµРѕРїР°РјСЏС‚Рё РїРѕРґ РјР°С‚СЂРёС†С‹ Рё РєРѕРїРёСЂРѕРІР°РЅРёРµ РёСЃС…РѕРґРЅС‹С… РјР°С‚СЂРёС† РІ РїР°РјСЏС‚СЊ СѓСЃС‚СЂРѕР№СЃС‚РІР°
 	cl_mem dev_A = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, sizeA, host_A, &err);
 	cl_mem dev_B = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, sizeB, host_B, &err);
 	cl_mem dev_C = clCreateBuffer(context, CL_MEM_WRITE_ONLY, sizeC, nullptr, &err);
@@ -83,7 +83,7 @@ int main(int argc, char* argv[])
 		return EXIT_FAILURE;
 	}
 
-	// Передача параметров ядра
+	// РџРµСЂРµРґР°С‡Р° РїР°СЂР°РјРµС‚СЂРѕРІ СЏРґСЂР°
 	err = clSetKernelArg(kernel, 0, sizeof(cl_mem), (void *)&dev_A);
 	err |= clSetKernelArg(kernel, 1, sizeof(cl_mem), (void *)&dev_B);
 	err |= clSetKernelArg(kernel, 2, sizeof(cl_mem), (void *)&dev_C);
@@ -96,7 +96,7 @@ int main(int argc, char* argv[])
 		return EXIT_FAILURE;
 	}
 
-	// Запуск ядра с измерением времени его выполнения
+	// Р—Р°РїСѓСЃРє СЏРґСЂР° СЃ РёР·РјРµСЂРµРЅРёРµРј РІСЂРµРјРµРЅРё РµРіРѕ РІС‹РїРѕР»РЅРµРЅРёСЏ
 	cl_event kernelExecutionEvent;
 	const cl_uint workDimensions = 2;
 	size_t localWorkSize[workDimensions] = { 16, 16 };
@@ -109,12 +109,12 @@ int main(int argc, char* argv[])
 		0, nullptr, &kernelExecutionEvent));
 	OPENCL_CHECK(clWaitForEvents(1, &kernelExecutionEvent));
 
-	// Копирование результирующей матрицы из памяти устройства в ОЗУ
+	// РљРѕРїРёСЂРѕРІР°РЅРёРµ СЂРµР·СѓР»СЊС‚РёСЂСѓСЋС‰РµР№ РјР°С‚СЂРёС†С‹ РёР· РїР°РјСЏС‚Рё СѓСЃС‚СЂРѕР№СЃС‚РІР° РІ РћР—РЈ
 	cl_event readBufferEvent;
 	OPENCL_CHECK(clEnqueueReadBuffer(commands, dev_C, CL_TRUE, 0, sizeC, host_C, 0, nullptr, &readBufferEvent));
 	OPENCL_CHECK(clWaitForEvents(1, &readBufferEvent));
 
-	// Ожидание окончания расчетов
+	// РћР¶РёРґР°РЅРёРµ РѕРєРѕРЅС‡Р°РЅРёСЏ СЂР°СЃС‡РµС‚РѕРІ
 	OPENCL_CHECK(clFinish(commands));
 
 	cl_ulong time_start, time_end;
@@ -125,7 +125,7 @@ int main(int argc, char* argv[])
 	OPENCL_CHECK(clGetEventProfilingInfo(readBufferEvent, CL_PROFILING_COMMAND_END, sizeof(time_end), &time_end, nullptr));
 	double readBufferTime = (time_end - time_start) / 1e9;
 
-	// Освобождаем ресурсы
+	// РћСЃРІРѕР±РѕР¶РґР°РµРј СЂРµСЃСѓСЂСЃС‹
 	OPENCL_CHECK(clReleaseKernel(kernel));
 	OPENCL_CHECK(clReleaseProgram(program));
 	OPENCL_CHECK(clReleaseMemObject(dev_A));

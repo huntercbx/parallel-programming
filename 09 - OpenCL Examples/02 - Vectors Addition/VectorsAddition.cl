@@ -1,4 +1,4 @@
-// OpenCL Kernel
+﻿// OpenCL Kernel
 __kernel
 void add_vectors_kernel(__global int* A, __global int* B, __global int* C)
 {

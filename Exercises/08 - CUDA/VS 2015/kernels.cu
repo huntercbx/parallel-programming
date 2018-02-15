@@ -1,4 +1,4 @@
-const unsigned char BLOCK_DIM_X = 16;
+﻿const unsigned char BLOCK_DIM_X = 16;
 const unsigned char BLOCK_DIM_Y = 16;
 
 __device__

@@ -1,4 +1,4 @@
-#include <cstdio>
+﻿#include <cstdio>
 
 // заголовочные файлы CUDA
 #include <cuda.h>

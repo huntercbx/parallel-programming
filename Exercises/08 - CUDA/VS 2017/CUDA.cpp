@@ -1,4 +1,4 @@
-#include <stdio.h>
+﻿#include <stdio.h>
 
 // заголовочные файлы CUDA
 #include <cuda.h>

@@ -1,4 +1,4 @@
-#include <vector>
+﻿#include <vector>
 #include <CL/cl.h>
 
 #include "../utils/utils.h"

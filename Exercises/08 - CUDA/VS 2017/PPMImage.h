@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 // Структура для работы с PPM (Portable PixelMap) изображениями
 struct PPMImage

@@ -1,4 +1,4 @@
-#include <mpi.h>
+п»ї#include <mpi.h>
 #include <stdio.h>
 #include <string.h>
 #include <windows.h>
@@ -9,16 +9,16 @@ int main( int argc, char *argv[])
 	int myrank, nprocs;
 	MPI_Status status;
 
-	// инициализация MPI (создание процессов)
+	// РёРЅРёС†РёР°Р»РёР·Р°С†РёСЏ MPI (СЃРѕР·РґР°РЅРёРµ РїСЂРѕС†РµСЃСЃРѕРІ)
 	MPI_Init(&argc, &argv);
 
-	// идентификация текущего процесса
+	// РёРґРµРЅС‚РёС„РёРєР°С†РёСЏ С‚РµРєСѓС‰РµРіРѕ РїСЂРѕС†РµСЃСЃР°
 	MPI_Comm_rank(MPI_COMM_WORLD, &myrank);
 	MPI_Comm_size(MPI_COMM_WORLD, &nprocs);
 
 	if (myrank == 0)
 	{
-		// выполняется нулевым процессом
+		// РІС‹РїРѕР»РЅСЏРµС‚СЃСЏ РЅСѓР»РµРІС‹Рј РїСЂРѕС†РµСЃСЃРѕРј
 		strcpy_s(message,"Hello, there");
 		int count = static_cast<int>(strlen(message)) + 1;
 		MPI_Send(message, count,
@@ -26,14 +26,14 @@ int main( int argc, char *argv[])
 	}
 	else if (myrank == 1)
 	{
-		// выполняется первым процессом
+		// РІС‹РїРѕР»РЅСЏРµС‚СЃСЏ РїРµСЂРІС‹Рј РїСЂРѕС†РµСЃСЃРѕРј
 		MPI_Recv(message, 20,
 			MPI_CHAR, 0, 99, MPI_COMM_WORLD,
 			&status);
 		printf("received: \"%s\"\n", message);
 	}
 
-	// завершение работы (ожидание процессов)
+	// Р·Р°РІРµСЂС€РµРЅРёРµ СЂР°Р±РѕС‚С‹ (РѕР¶РёРґР°РЅРёРµ РїСЂРѕС†РµСЃСЃРѕРІ)
 	MPI_Finalize();
 	return 0;
 }

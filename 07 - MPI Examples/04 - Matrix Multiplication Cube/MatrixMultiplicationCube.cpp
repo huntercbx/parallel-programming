@@ -1,4 +1,4 @@
-#include <mpi.h>
+п»ї#include <mpi.h>
 #include <stdio.h>
 
 const size_t GRID_DIM = 3;
@@ -30,7 +30,7 @@ void CreateSubmatrixType(MPI_Datatype *type,
 	int n_rows, int n_cols,
 	int block_rows, int block_cols)
 {
-	// объем памяти занимаемый типом данных MPI_DOUBLE
+	// РѕР±СЉРµРј РїР°РјСЏС‚Рё Р·Р°РЅРёРјР°РµРјС‹Р№ С‚РёРїРѕРј РґР°РЅРЅС‹С… MPI_DOUBLE
 	MPI_Aint double_lb, double_extent;
 	MPI_Type_get_extent(MPI_DOUBLE, &double_lb, &double_extent);
 
@@ -48,21 +48,21 @@ int main( int argc, char *argv[])
 {
 	int myrank, nprocs;
 
-	// инициализация MPI (создание процессов)
+	// РёРЅРёС†РёР°Р»РёР·Р°С†РёСЏ MPI (СЃРѕР·РґР°РЅРёРµ РїСЂРѕС†РµСЃСЃРѕРІ)
 	MPI_Init(&argc, &argv);
 
-	// идентификация текущего процесса
+	// РёРґРµРЅС‚РёС„РёРєР°С†РёСЏ С‚РµРєСѓС‰РµРіРѕ РїСЂРѕС†РµСЃСЃР°
 	MPI_Comm_rank(MPI_COMM_WORLD, &myrank);
 	MPI_Comm_size(MPI_COMM_WORLD, &nprocs);
 
-	// создаем куб из имеющихся узлов
+	// СЃРѕР·РґР°РµРј РєСѓР± РёР· РёРјРµСЋС‰РёС…СЃСЏ СѓР·Р»РѕРІ
 	int dims[GRID_DIM] = {0, 0, 0};
 	int periods[GRID_DIM] = {0, 0, 0};
 	MPI_Comm comm3D;
 	MPI_Dims_create(nprocs, GRID_DIM, dims);
 	MPI_Cart_create(MPI_COMM_WORLD, GRID_DIM, dims, periods, DO_NOT_REORDER, &comm3D);
 
-	// определяем входные параметры задачи
+	// РѕРїСЂРµРґРµР»СЏРµРј РІС…РѕРґРЅС‹Рµ РїР°СЂР°РјРµС‚СЂС‹ Р·Р°РґР°С‡Рё
 	double *A = nullptr, *B = nullptr, *C = nullptr;
 	int matrix_dim[3] = {10, 10, 10};
 	bool invalid_parameters = false;
@@ -90,7 +90,7 @@ int main( int argc, char *argv[])
 		if (myrank == 0)
 			printf("one (or more) matrix dimension is not suitable grid dimension(s)\n");
 
-		// завершение работы
+		// Р·Р°РІРµСЂС€РµРЅРёРµ СЂР°Р±РѕС‚С‹
 		MPI_Comm_free(&comm3D);
 		MPI_Finalize();
 		return -1;
@@ -103,7 +103,7 @@ int main( int argc, char *argv[])
 	       C_rows = matrix_dim[0], CC_rows = matrix_dim[0]/dims[0],
 	       C_cols = matrix_dim[2], CC_cols = matrix_dim[2]/dims[2];
 
-	// генерируем исходные матрицы в нулевом процессе
+	// РіРµРЅРµСЂРёСЂСѓРµРј РёСЃС…РѕРґРЅС‹Рµ РјР°С‚СЂРёС†С‹ РІ РЅСѓР»РµРІРѕРј РїСЂРѕС†РµСЃСЃРµ
 	if (myrank == 0)
 	{
 		A = new double[A_rows*A_cols];
@@ -113,7 +113,7 @@ int main( int argc, char *argv[])
 		FillMatrix(B, B_rows, B_cols, 1, 0.02);
 	}
 
-	// создаем коммуникаторы для плоскостей XY, XZ, YZ
+	// СЃРѕР·РґР°РµРј РєРѕРјРјСѓРЅРёРєР°С‚РѕСЂС‹ РґР»СЏ РїР»РѕСЃРєРѕСЃС‚РµР№ XY, XZ, YZ
 	MPI_Comm commXY, commXZ, commYZ;
 	int XY_dimensions[GRID_DIM] = {1, 1, 0};
 	int XZ_dimensions[GRID_DIM] = {1, 0, 1};
@@ -122,7 +122,7 @@ int main( int argc, char *argv[])
 	MPI_Cart_sub(comm3D, XZ_dimensions, &commXZ);
 	MPI_Cart_sub(comm3D, YZ_dimensions, &commYZ);
 
-	// создаем коммуникаторы для осей X, Y, Z
+	// СЃРѕР·РґР°РµРј РєРѕРјРјСѓРЅРёРєР°С‚РѕСЂС‹ РґР»СЏ РѕСЃРµР№ X, Y, Z
 	MPI_Comm commX, commY, commZ;
 	int X_dimension[GRID_DIM] = {1, 0, 0};
 	int Y_dimension[GRID_DIM] = {0, 1, 0};
@@ -131,14 +131,14 @@ int main( int argc, char *argv[])
 	MPI_Cart_sub(comm3D, Y_dimension, &commY);
 	MPI_Cart_sub(comm3D, Z_dimension, &commZ);
 
-	// получаем координаты процесса
+	// РїРѕР»СѓС‡Р°РµРј РєРѕРѕСЂРґРёРЅР°С‚С‹ РїСЂРѕС†РµСЃСЃР°
 	int coords[GRID_DIM];
 	int myrank3D;
 	MPI_Comm_rank(comm3D, &myrank3D);
 	MPI_Cart_coords(comm3D, myrank3D, GRID_DIM, coords);
 	printf("Global rank: %2d, 3D rank : %2d, coords = (%d, %d, %d)\n", myrank, myrank3D, coords[0], coords[1], coords[2]);
 
-	// Выделяем памаять в каждом узле
+	// Р’С‹РґРµР»СЏРµРј РїР°РјР°СЏС‚СЊ РІ РєР°Р¶РґРѕРј СѓР·Р»Рµ
 	double *AA, *BB, *CC, *CC_R;
 	AA = new double[AA_rows*AA_cols];
 	BB = new double[BB_rows*BB_cols];
@@ -150,7 +150,7 @@ int main( int argc, char *argv[])
 	CreateSubmatrixType(&typeB, B_rows, B_cols, BB_rows, BB_cols);
 	CreateSubmatrixType(&typeC, C_rows, C_cols, CC_rows, CC_cols);
 
-	// данные для рассылки матрицы A
+	// РґР°РЅРЅС‹Рµ РґР»СЏ СЂР°СЃСЃС‹Р»РєРё РјР°С‚СЂРёС†С‹ A
 	int *sendcountsA = new int[dims[0]*dims[1]];
 	int *displsA = new int[dims[0]*dims[1]];
 	for (int i = 0; i < dims[0]; ++i)
@@ -162,7 +162,7 @@ int main( int argc, char *argv[])
 		}
 	}
 
-	// данные для рассылки матрицы B
+	// РґР°РЅРЅС‹Рµ РґР»СЏ СЂР°СЃСЃС‹Р»РєРё РјР°С‚СЂРёС†С‹ B
 	int *sendcountsB = new int[dims[1]*dims[2]];
 	int *displsB = new int[dims[1]*dims[2]];
 	for (int i = 0; i < dims[1]; ++i)
@@ -174,7 +174,7 @@ int main( int argc, char *argv[])
 		}
 	}
 
-	// данные для рассылки матрицы C
+	// РґР°РЅРЅС‹Рµ РґР»СЏ СЂР°СЃСЃС‹Р»РєРё РјР°С‚СЂРёС†С‹ C
 	int *sendcountsC = new int[dims[0]*dims[2]];
 	int *displsC = new int[dims[0]*dims[2]];
 	for (int i = 0; i < dims[0]; ++i)
@@ -226,7 +226,7 @@ int main( int argc, char *argv[])
 		delete [] C;
 	}
 
-	// освобождение ресурсов
+	// РѕСЃРІРѕР±РѕР¶РґРµРЅРёРµ СЂРµСЃСѓСЂСЃРѕРІ
 	MPI_Comm_free(&comm3D);
 	MPI_Comm_free(&commXY);
 	MPI_Comm_free(&commXZ);
@@ -235,7 +235,7 @@ int main( int argc, char *argv[])
 	MPI_Comm_free(&commY);
 	MPI_Comm_free(&commZ);
 
-	// завершение работы
+	// Р·Р°РІРµСЂС€РµРЅРёРµ СЂР°Р±РѕС‚С‹
 	MPI_Finalize();
 	return 0;
 }

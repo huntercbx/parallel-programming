@@ -1,4 +1,4 @@
-__global__
+﻿__global__
 void mult_matrix_kernel_simple(float *A, float *B, float *C, unsigned int N, unsigned int L, unsigned int M)
 {
 	// определяем место потока в массиве

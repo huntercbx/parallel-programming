@@ -1,4 +1,4 @@
-__kernel
+﻿__kernel
 void mult_matrix_kernel_simple(__global float *A, __global float *B, __global float *C,
 	unsigned int N, unsigned int L, unsigned int M)
 {

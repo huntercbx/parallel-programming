@@ -1,11 +1,11 @@
-#include <cstdio>
+п»ї#include <cstdio>
 #include <cstdlib>
 #include <string>
 #include <vector>
 
 #include <CL/cl.h>
 
-// Макрос для проверки на ошибку, при вызове функций OPENCL
+// РњР°РєСЂРѕСЃ РґР»СЏ РїСЂРѕРІРµСЂРєРё РЅР° РѕС€РёР±РєСѓ, РїСЂРё РІС‹Р·РѕРІРµ С„СѓРЅРєС†РёР№ OPENCL
 #define OPENCL_CHECK(call)                                                \
 {                                                                         \
     cl_int err = call;                                                    \
