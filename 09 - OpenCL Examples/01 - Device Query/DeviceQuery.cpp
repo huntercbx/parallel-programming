@@ -1,6 +1,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <string>
+#include <vector>
 
 #include <CL/cl.h>
 
@@ -50,6 +51,19 @@ std::string GetDeviceInfo(cl_device_id device, cl_device_info param_name)
 	return str;
 }
 
+template <typename T>
+std::vector<T> GetDeviceVectorInfo(cl_device_id device, cl_device_info param_name)
+{
+	size_t size;
+	OPENCL_CHECK(clGetDeviceInfo(device, param_name, 0, nullptr, &size));
+
+	std::vector<T> v(size);
+	OPENCL_CHECK(clGetDeviceInfo(device, param_name, size, v.data(), nullptr));
+
+	return v;
+}
+
+
 int main(int argc, char* argv[])
 {
 	// get platform list
@@ -69,19 +83,19 @@ int main(int argc, char* argv[])
 		printf("Platform %d information:\n", i);
 
 		str = GetPlatformInfo(platforms[i], CL_PLATFORM_NAME);
-		printf("   %s = %s\n", "CL_PLATFORM_NAME      ", str.c_str());
+		printf("   CL_PLATFORM_NAME       = %s\n", str.c_str());
 
 		str = GetPlatformInfo(platforms[i], CL_PLATFORM_VENDOR);
-		printf("   %s = %s\n", "CL_PLATFORM_VENDOR    ", str.c_str());
+		printf("   CL_PLATFORM_VENDOR     = %s\n", str.c_str());
 
 		str = GetPlatformInfo(platforms[i], CL_PLATFORM_VERSION);
-		printf("   %s = %s\n", "CL_PLATFORM_VERSION   ", str.c_str());
+		printf("   CL_PLATFORM_VERSION    = %s\n", str.c_str());
 
 		str = GetPlatformInfo(platforms[i], CL_PLATFORM_PROFILE);
-		printf("   %s = %s\n", "CL_PLATFORM_PROFILE   ", str.c_str());
+		printf("   CL_PLATFORM_PROFILE    = %s\n", str.c_str());
 
 		str = GetPlatformInfo(platforms[i], CL_PLATFORM_EXTENSIONS);
-		printf("   %s = %s\n", "CL_PLATFORM_EXTENSIONS", str.c_str());
+		printf("   CL_PLATFORM_EXTENSIONS = %s\n", str.c_str());
 
 		// get device list
 		cl_uint num_devices;
@@ -94,22 +108,36 @@ int main(int argc, char* argv[])
 			printf("   Device %d information:\n", j);
 
 			str = GetDeviceInfo<std::string>(devices[j], CL_DEVICE_NAME);
-			printf("      %s = %s\n", "CL_DEVICE_NAME   ", str.c_str());
+			printf("      CL_DEVICE_NAME                       = %s\n", str.c_str());
 
 			str = GetDeviceInfo<std::string>(devices[j], CL_DEVICE_VENDOR);
-			printf("      %s = %s\n", "CL_DEVICE_VENDOR ", str.c_str());
+			printf("      CL_DEVICE_VENDOR                     = %s\n", str.c_str());
 
 			str = GetDeviceInfo<std::string>(devices[j], CL_DRIVER_VERSION);
-			printf("      %s = %s\n", "CL_DRIVER_VERSION", str.c_str());
+			printf("      CL_DRIVER_VERSION                    = %s\n", str.c_str());
 
 			auto global_mem_size = GetDeviceInfo<cl_ulong>(devices[j], CL_DEVICE_GLOBAL_MEM_SIZE);
-			printf("      %s = %I64d MB\n", "CL_DEVICE_GLOBAL_MEM_SIZE", global_mem_size/1024/1024);
+			printf("      CL_DEVICE_GLOBAL_MEM_SIZE            = %I64d MB\n", global_mem_size / 1024 / 1024);
+
+			auto local_mem_size = GetDeviceInfo<cl_ulong>(devices[j], CL_DEVICE_LOCAL_MEM_SIZE);
+			printf("      CL_DEVICE_LOCAL_MEM_SIZE             = %I64d KB\n", local_mem_size / 1024);
 
 			auto compute_units = GetDeviceInfo<cl_int>(devices[j], CL_DEVICE_MAX_COMPUTE_UNITS);
-			printf("      %s = %d\n", "CL_DEVICE_MAX_COMPUTE_UNITS", compute_units);
+			printf("      CL_DEVICE_MAX_COMPUTE_UNITS          = %d\n", compute_units);
 
 			auto max_work_group_size = GetDeviceInfo<size_t>(devices[j], CL_DEVICE_MAX_WORK_GROUP_SIZE);
-			printf("      %s = %d\n", "CL_DEVICE_MAX_WORK_GROUP_SIZE", max_work_group_size);
+			printf("      CL_DEVICE_MAX_WORK_GROUP_SIZE        = %d\n", max_work_group_size);
+
+			auto max_work_dimensions = GetDeviceInfo<cl_uint>(devices[j], CL_DEVICE_MAX_WORK_ITEM_DIMENSIONS);
+			auto max_work_sizes = GetDeviceVectorInfo<size_t>(devices[j], CL_DEVICE_MAX_WORK_ITEM_SIZES);
+			printf("      CL_DEVICE_MAX_WORK_ITEM_SIZES        = ");
+			for (size_t k = 0, ke = max_work_dimensions; k < ke; ++k)
+				printf("%s%d", k == 0 ? "" : " x ", max_work_sizes[k]);
+			printf("\n");
+
+			auto timerResolution = GetDeviceInfo<size_t>(devices[j], CL_DEVICE_PROFILING_TIMER_RESOLUTION);
+			printf("      CL_DEVICE_PROFILING_TIMER_RESOLUTION = %d ns\n", timerResolution);
+
 		}
 
 		delete[] devices;

@@ -2,8 +2,6 @@
 #include <CL/cl.h>
 #include "../utils/utils.h"
 
-using namespace std;
-
 int main(int argc, char* argv[])
 {
 	// Проверка на наличие устройств с поддержкой OpenCL
@@ -33,8 +31,8 @@ int main(int argc, char* argv[])
 		return EXIT_FAILURE;
 	}
 
-	// Создание очереди команд
-	cl_command_queue commands = clCreateCommandQueue(context, device_id, 0, &err);
+	// Создание очереди команд (с включенным профилированием)
+	cl_command_queue commands = clCreateCommandQueue(context, device_id, CL_QUEUE_PROFILING_ENABLE, &err);
 	if (!commands)
 	{
 		printf("Error: Failed to create a command queue!\n");
@@ -98,21 +96,49 @@ int main(int argc, char* argv[])
 		return EXIT_FAILURE;
 	}
 
-	size_t localWorkSize[2] = { 16, 16 };
-	size_t globalWorkSize[2] = {
+	// Запуск ядра с измерением времени его выполнения
+	cl_event kernelExecutionEvent;
+	const cl_uint workDimensions = 2;
+	size_t localWorkSize[workDimensions] = { 16, 16 };
+	size_t globalWorkSize[workDimensions] = {
 		((N - 1) / localWorkSize[0] + 1) * localWorkSize[0],
 		((M - 1) / localWorkSize[1] + 1) * localWorkSize[1]
 	};
-	OPENCL_CHECK(clEnqueueNDRangeKernel(commands, kernel, 2, nullptr, globalWorkSize, localWorkSize, 0, nullptr, nullptr));
+	OPENCL_CHECK(clEnqueueNDRangeKernel(commands, kernel,
+		workDimensions, nullptr, globalWorkSize, localWorkSize,
+		0, nullptr, &kernelExecutionEvent));
+	OPENCL_CHECK(clWaitForEvents(1, &kernelExecutionEvent));
 
 	// Копирование результирующей матрицы из памяти устройства в ОЗУ
-	OPENCL_CHECK(clEnqueueReadBuffer(commands, dev_C, CL_TRUE, 0, sizeC, host_C, 0, nullptr, nullptr));
+	cl_event readBufferEvent;
+	OPENCL_CHECK(clEnqueueReadBuffer(commands, dev_C, CL_TRUE, 0, sizeC, host_C, 0, nullptr, &readBufferEvent));
+	OPENCL_CHECK(clWaitForEvents(1, &readBufferEvent));
 
-	// Ожидание окончания рассчетов
+	// Ожидание окончания расчетов
 	OPENCL_CHECK(clFinish(commands));
+
+	cl_ulong time_start, time_end;
+	OPENCL_CHECK(clGetEventProfilingInfo(kernelExecutionEvent, CL_PROFILING_COMMAND_START, sizeof(time_start), &time_start, nullptr));
+	OPENCL_CHECK(clGetEventProfilingInfo(kernelExecutionEvent, CL_PROFILING_COMMAND_END, sizeof(time_end), &time_end, nullptr));
+	double kernelExecutionTime = (time_end - time_start)/1e9;
+	OPENCL_CHECK(clGetEventProfilingInfo(readBufferEvent, CL_PROFILING_COMMAND_START, sizeof(time_start), &time_start, nullptr));
+	OPENCL_CHECK(clGetEventProfilingInfo(readBufferEvent, CL_PROFILING_COMMAND_END, sizeof(time_end), &time_end, nullptr));
+	double readBufferTime = (time_end - time_start) / 1e9;
+
+	// Освобождаем ресурсы
+	OPENCL_CHECK(clReleaseKernel(kernel));
+	OPENCL_CHECK(clReleaseProgram(program));
+	OPENCL_CHECK(clReleaseMemObject(dev_A));
+	OPENCL_CHECK(clReleaseMemObject(dev_B));
+	OPENCL_CHECK(clReleaseMemObject(dev_C));
+	OPENCL_CHECK(clReleaseCommandQueue(commands));
+	OPENCL_CHECK(clReleaseDevice(device_id));
+	OPENCL_CHECK(clReleaseContext(context));
 
 	printf("Matricies dimensions:                [%d x %d] * [%d x %d]\n", N, L, L, M);
 	printf("Resulting matrix element:            %g\n", host_C[N]);
+	printf("Kernel execution time:               %g s\n", kernelExecutionTime);
+	printf("Copying result time:                 %g s\n", readBufferTime);
 
 	return 0;
 }

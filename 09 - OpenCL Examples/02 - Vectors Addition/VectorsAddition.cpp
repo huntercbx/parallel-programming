@@ -6,8 +6,6 @@
 // размер векторов
 const unsigned int N = 10;
 
-using namespace std;
-
 int main(int argc, char* argv[])
 {
 	// проверка на наличие устройств с поддержкой OpenCL
@@ -79,7 +77,6 @@ int main(int argc, char* argv[])
 	err = clSetKernelArg(kernel, 0, sizeof(cl_mem), (void *)&dev_A);
 	err |= clSetKernelArg(kernel, 1, sizeof(cl_mem), (void *)&dev_B);
 	err |= clSetKernelArg(kernel, 2, sizeof(cl_mem), (void *)&dev_C);
-	err |= clSetKernelArg(kernel, 3, sizeof(unsigned int), (void *)&N);
 	if (err != CL_SUCCESS)
 	{
 		printf("Error: Failed to set kernel arguments! %d\n", err);
@@ -95,6 +92,16 @@ int main(int argc, char* argv[])
 	// Ожидание окончания рассчетов
 	OPENCL_CHECK(clFinish(commands));
 
+	// Освобождаем ресурсы
+	OPENCL_CHECK(clReleaseKernel(kernel));
+	OPENCL_CHECK(clReleaseProgram(program));
+	OPENCL_CHECK(clReleaseMemObject(dev_A));
+	OPENCL_CHECK(clReleaseMemObject(dev_B));
+	OPENCL_CHECK(clReleaseMemObject(dev_C));
+	OPENCL_CHECK(clReleaseCommandQueue(commands));
+	OPENCL_CHECK(clReleaseDevice(device_id));
+	OPENCL_CHECK(clReleaseContext(context));
+	
 	// вывод резудьтирующего вектора на экран
 	for (size_t i = 0; i < N; ++i)
 		printf("%d + %d = %d\n", host_A[i], host_B[i], host_C[i]);
