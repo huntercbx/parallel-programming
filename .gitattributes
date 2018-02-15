@@ -1,0 +1,25 @@
+# Windows-specific files that require CRLF:
+
+*.bat       eol=crlf
+*.cmd       eol=crlf
+*.props     eol=crlf
+*.rc        eol=crlf
+*.sln       eol=crlf
+*.vc        eol=crlf
+*.vcproj    eol=crlf
+*.vcxproj   eol=crlf
+*.vsprops   eol=crlf
+*.filters   eol=crlf
+
+# Unix-specific files that require LF:
+
+*.sh        eol=lf
+
+# Source files that require CRLF:
+
+*.c         eol=crlf
+*.cpp       eol=crlf
+*.h         eol=crlf
+*.hpp       eol=crlf
+*.cl        eol=crlf
+*.cu        eol=crlf
