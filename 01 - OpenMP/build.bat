@@ -1,0 +1,1 @@
+@g++ -std=c++11 -fopenmp %1 -o %~n1.exe
