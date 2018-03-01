@@ -26,7 +26,6 @@ void process_data(unsigned int n)
 
 int main(int argc, char *argv[])
 {
-
 	#pragma omp parallel
 	{
 		// блок параллельных секций
@@ -35,16 +34,20 @@ int main(int argc, char *argv[])
 			// Первая паралльная секция
 			#pragma omp section
 			{
+				#pragma omp critical
 				printf("Start of first section\n");
 				process_data(500);
+				#pragma omp critical
 				printf("End of first section\n");
 			}
 
 			// Вторая паралльная секция
 			#pragma omp section
 			{
+				#pragma omp critical
 				printf("Start of second section\n");
 				process_data(1000);
+				#pragma omp critical
 				printf("End of second section\n");
 			}
 		}  // конец блока параллельных секций
