@@ -1,0 +1,5 @@
+# Source files that require CRLF:
+
+*.css       eol=crlf
+*.js        eol=crlf
+*.html      eol=crlf

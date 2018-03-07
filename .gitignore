@@ -1,0 +1,32 @@
+#masks and multiple files
+*.obj
+*.pdb
+*.pch
+*.dll
+*.idb
+*.lib
+*.exp
+*.exe
+*.ilk
+*.cod
+*.vcxproj.user
+*.sdf
+*.opensdf
+*.VC.db
+*.VC.opendb
+*.tlb
+*.ncb
+*.suo
+*.log
+*.tlog
+*.ppm
+
+
+#individual files
+BuildLog.htm
+
+#directories
+**/x64/*
+**/Release/*
+**/Debug/*
+**/.vs/*
