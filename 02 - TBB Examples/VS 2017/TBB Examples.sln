@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 14
-VisualStudioVersion = 14.0.25420.1
+# Visual Studio 15
+VisualStudioVersion = 15.0.27130.2010
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "06 - Parallel Pipeline", "06 - Parallel Pipeline\06 - Parallel Pipeline.vcxproj", "{59C3825C-E97F-4FC5-A1C8-0BB6384FEB6D}"
 EndProject
@@ -12,6 +12,8 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "04 - Parallel Reduce", "04 - Parallel Reduce\04 - Parallel Reduce.vcxproj", "{03DCD621-B4AE-4B19-9653-C118CA47ACAF}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "05 - Parallel Do", "05 - Parallel Do\05 - Parallel Do.vcxproj", "{F2C1ADDF-0635-4911-ACE3-BDA35261E0A4}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "02 - Blocked Range 2D", "02 - Blocked Range 2D\02 - Blocked Range 2D.vcxproj", "{77FF4152-A139-49FC-BA41-30D41AEBAB88}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -39,8 +41,15 @@ Global
 		{F2C1ADDF-0635-4911-ACE3-BDA35261E0A4}.Debug|x64.Build.0 = Debug|x64
 		{F2C1ADDF-0635-4911-ACE3-BDA35261E0A4}.Release|x64.ActiveCfg = Release|x64
 		{F2C1ADDF-0635-4911-ACE3-BDA35261E0A4}.Release|x64.Build.0 = Release|x64
+		{77FF4152-A139-49FC-BA41-30D41AEBAB88}.Debug|x64.ActiveCfg = Debug|x64
+		{77FF4152-A139-49FC-BA41-30D41AEBAB88}.Debug|x64.Build.0 = Debug|x64
+		{77FF4152-A139-49FC-BA41-30D41AEBAB88}.Release|x64.ActiveCfg = Release|x64
+		{77FF4152-A139-49FC-BA41-30D41AEBAB88}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {3CA98A83-4614-4827-9C80-6FC268E04F7B}
 	EndGlobalSection
 EndGlobal
