@@ -5,7 +5,7 @@
     <OPENCV_DIR>C:\OpenCV-3.4.1\build</OPENCV_DIR>
   </PropertyGroup>
   <PropertyGroup>
-    <_PropertySheetDisplayName>OpenCV 3.2 Debug x64</_PropertySheetDisplayName>
+    <_PropertySheetDisplayName>OpenCV 3.4.1 Debug x64</_PropertySheetDisplayName>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
