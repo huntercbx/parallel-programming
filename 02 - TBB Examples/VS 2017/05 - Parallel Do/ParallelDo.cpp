@@ -96,6 +96,8 @@ private:
 			if (pos != string::npos)
 				link = link.substr(0, pos);
 
+			from = to;
+
 			if (link.empty()) continue;
 
 			{
@@ -108,8 +110,6 @@ private:
 				else
 					a->second++;
 			}
-
-			from = to;
 		}
 	}
 
