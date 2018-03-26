@@ -1,4 +1,4 @@
-﻿////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 /// Демонстрация проблемы читателей-писателей
 ///
 /// В данном примере блокировки не используются, читатели и писатели имеют
@@ -15,6 +15,7 @@
 #include <windows.h>
 #include <stdio.h>
 #include <climits>
+#include <ctime>
 
 const unsigned int N_READERS        = 4;            // Количество задач-читателей
 const unsigned int N_WRITERS        = 1;            // Количество задач-писателей
@@ -28,6 +29,23 @@ char buffer[BUFFER_SIZE] = "AAAAAAAAAAAAAAAAAAA";   // Буфер - играет
 bool abort_all_threads              = false;        // Признак завершения работы всех потоков
 
 HANDLE hThreadArray[N_READERS + N_WRITERS];         // Дескрипторы потоков
+LARGE_INTEGER PERFORMANCE_COUNTER_FREQUENCY;        // Частота таймера для измерения производительности
+
+////////////////////////////////////////////////////////////////////////////////
+// Функция эмуляции задержки операций ввода-вывода
+////////////////////////////////////////////////////////////////////////////////
+void DelayMS(DWORD time)
+{
+	LARGE_INTEGER t0, t1;
+	QueryPerformanceCounter(&t0);
+	QueryPerformanceCounter(&t1);
+	const auto dt = PERFORMANCE_COUNTER_FREQUENCY.QuadPart / 1000 * time;
+	while (true)
+	{
+		if (t1.QuadPart - t0.QuadPart >= dt) return;
+		QueryPerformanceCounter(&t1);
+	}
+}
 
 ////////////////////////////////////////////////////////////////////////////////
 // Эмуляция операции записи
@@ -40,8 +58,7 @@ void WriteOperation()
 		buffer[i] = ch;
 
 	// задержка для эмуляции длительности операции
-	if (WRITE_TIME_MS > 0)
-		Sleep(WRITE_TIME_MS);
+	DelayMS(WRITE_TIME_MS);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -69,8 +86,7 @@ bool ReadOperation()
 	}
 
 	// задержка для эмуляции длительности операции
-	if (READ_TIME_MS > 0)
-		Sleep(READ_TIME_MS);
+	DelayMS(READ_TIME_MS);
 
 	return true;
 }
@@ -104,6 +120,9 @@ DWORD WINAPI ReaderThreadFunction(LPVOID lpParam)
 ////////////////////////////////////////////////////////////////////////////////
 int main(int argc, char* argv[])
 {
+	// Получаем частоту таймера для измерения производительности
+	QueryPerformanceFrequency(&PERFORMANCE_COUNTER_FREQUENCY);
+
 	DWORD dwThreadID;
 
 	// Создание потоков-читателей
