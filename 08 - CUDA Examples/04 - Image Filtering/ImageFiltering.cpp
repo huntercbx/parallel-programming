@@ -78,7 +78,7 @@ int main(int argc, char* argv[])
 
 	// обработка изображения
 	cudaEventRecord(evt3, 0);
-	GPUFiltering(dev_origin, dev_result, original_image.width, original_image.height);
+	GPUFilteringShared(dev_origin, dev_result, original_image.width, original_image.height);
 
 	// копирование обработанного изображения из видеопамяти
 	cudaEventRecord(evt4, 0);

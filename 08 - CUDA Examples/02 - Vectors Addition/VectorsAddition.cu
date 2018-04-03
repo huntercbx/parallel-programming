@@ -66,7 +66,7 @@ int main(int argc, char* argv[])
 	cudaFree(dev_B);
 	cudaFree(dev_C);
 
-	// вывод резудьтирующего вектора на экран
+	// вывод результирующего вектора на экран
 	for (size_t i = 0; i < N; ++i)
 		printf("%d + %d = %d\n", host_A[i], host_B[i], host_C[i]);
 
