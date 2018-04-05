@@ -22,7 +22,7 @@
 #include <cmath>
 #include <ctime>
 
-const unsigned int  N_THREADS       = 3;            // Количество потоков
+const unsigned int  N_THREADS       = 33;            // Количество потоков
 LONG volatile       nPrimeNumbers   = 0;            // Количество найденных простых чисел
 CRITICAL_SECTION    cs;                             // Критическая секция
 

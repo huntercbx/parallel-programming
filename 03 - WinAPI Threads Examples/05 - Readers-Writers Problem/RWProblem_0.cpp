@@ -18,13 +18,13 @@
 #include <ctime>
 
 const unsigned int N_READERS        = 4;            // Количество задач-читателей
-const unsigned int N_WRITERS        = 1;            // Количество задач-писателей
-const DWORD	TOTAL_TIME_MS           = 5000;         // Общее время работы программы
+const unsigned int N_WRITERS        = 4;            // Количество задач-писателей
+const DWORD	TOTAL_TIME_MS           = 10000;        // Общее время работы программы
 const DWORD	READ_TIME_MS            = 1;            // Время чтения в мс (эмуляция долгих операций)
 const DWORD	WRITE_TIME_MS           = 1;            // Время записи в мс (эмуляция долгих операций)
 
-const unsigned int BUFFER_SIZE      = 20;           // Размер буфера
-char buffer[BUFFER_SIZE] = "AAAAAAAAAAAAAAAAAAA";   // Буфер - играет роль общей области памяти
+const unsigned int BUFFER_SIZE      = 50;           // Размер буфера
+char buffer[BUFFER_SIZE];                           // Буфер - играет роль общей области памяти
 
 bool abort_all_threads              = false;        // Признак завершения работы всех потоков
 
@@ -50,12 +50,16 @@ void DelayMS(DWORD time)
 ////////////////////////////////////////////////////////////////////////////////
 // Эмуляция операции записи
 ////////////////////////////////////////////////////////////////////////////////
-void WriteOperation()
+void WriteOperation(unsigned int* counter = NULL)
 {
 	// записываем данные в память
 	char ch = buffer[0] == 'Z' ? 'A' : buffer[0] + 1;
-	for (unsigned int i = 0; i < BUFFER_SIZE - 1; ++i)
+	for (unsigned int i = 0; i < BUFFER_SIZE; ++i)
 		buffer[i] = ch;
+
+	// увеличиваем счетчик операций
+	if (counter != NULL)
+		++(*counter);
 
 	// задержка для эмуляции длительности операции
 	DelayMS(WRITE_TIME_MS);
@@ -64,31 +68,32 @@ void WriteOperation()
 ////////////////////////////////////////////////////////////////////////////////
 // Эмуляция операции чтения с проверкой целостности буфера
 ////////////////////////////////////////////////////////////////////////////////
-bool ReadOperation()
+void ReadOperation(unsigned int* counter = NULL)
 {
-	char local_buffer[BUFFER_SIZE];
+	char local_buffer[BUFFER_SIZE + 1];
+	local_buffer[BUFFER_SIZE] = 0;
 
 	// читаем данные из памяти
 	bool error = false;
 	for (unsigned int i = 0; i < BUFFER_SIZE; ++i)
 	{
 		local_buffer[i] = buffer[i];
-		error |= i > 0 && i < BUFFER_SIZE -1 && local_buffer[i] != local_buffer[i - 1];
+		error |= i > 0 && local_buffer[i] != local_buffer[i - 1];
 	}
 
-	// если была ошибка, выводим сообщение об ошибке и возвращаем
+	// увеличиваем счетчик операций
+	if (counter != NULL)
+		++(*counter);
+
+	// если была ошибка, выводим сообщение об ошибке
 	if (error)
 	{
-		printf_s("Reader thread %4d detect buffer corruption: %s\n",
+		printf_s("Reader thread %5d detect buffer corruption: %s\n",
 			GetCurrentThreadId(), local_buffer);
-
-		return false;
 	}
 
 	// задержка для эмуляции длительности операции
 	DelayMS(READ_TIME_MS);
-
-	return true;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -116,12 +121,16 @@ DWORD WINAPI ReaderThreadFunction(LPVOID lpParam)
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-// 
+// Основная программа
 ////////////////////////////////////////////////////////////////////////////////
 int main(int argc, char* argv[])
 {
 	// Получаем частоту таймера для измерения производительности
 	QueryPerformanceFrequency(&PERFORMANCE_COUNTER_FREQUENCY);
+
+	// Инициализируем буфер
+	for (size_t i = 0; i < BUFFER_SIZE; ++i)
+		buffer[i] = 'A';
 
 	DWORD dwThreadID;
 
@@ -141,7 +150,7 @@ int main(int argc, char* argv[])
 			ExitProcess(1);
 
 		// Выводим сообщение об успешном создании потока
-		printf_s("Reader thread %4d sucsessfully created\n", dwThreadID);
+		printf_s("Reader thread %5d sucsessfully created\n", dwThreadID);
 	}
 
 	// Создание потоков-писатлей
@@ -160,7 +169,7 @@ int main(int argc, char* argv[])
 			ExitProcess(1);
 
 		// Выводим сообщение об успешном создании потока
-		printf_s("Writer thread %4d sucsessfully created\n", dwThreadID);
+		printf_s("Writer thread %5d sucsessfully created\n", dwThreadID);
 	}
 
 	// Ждем указанное время для получения результатов

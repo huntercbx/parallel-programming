@@ -113,6 +113,7 @@ void CreateData()
 		            rand() / static_cast<float>(RAND_MAX);
 
 	// Сигнализируем об окончании генерации исходных данных
+	printf_s("Main finish data generation, sending an event\n");
 	if (!SetEvent(hEvent))
 	{
 		printf_s("SetEvent failed (%d)\n", GetLastError());
@@ -137,8 +138,6 @@ int main(int argc, char* argv[])
 		ExitProcess(1);
 	}
 
-	DWORD dwThreadID;
-
 	// Создание потока для поиска минимума
 	hThreadArray[0] = CreateThread(
 		NULL,                   // использовать настройки безопасности по умолчанию
@@ -146,7 +145,7 @@ int main(int argc, char* argv[])
 		MinThreadFunction,      // имя функции потока
 		NULL,                   // без аргументов
 		0,                      // создать поток с флагами по умолчанию
-		&dwThreadID);           // идентификатор потока
+		NULL);                  // идентификатор потока не запоминаем
 
 	// Если поток не был создан - завершаем работу с ошибкой
 	if (hThreadArray[0] == NULL)
@@ -159,7 +158,7 @@ int main(int argc, char* argv[])
 		MaxThreadFunction,      // имя функции потока
 		NULL,                   // без аргументов
 		0,                      // создать поток с флагами по умолчанию
-		&dwThreadID);           // идентификатор потока
+		NULL);                  // идентификатор потока не запоминаем
 
 	// Если поток не был создан - завершаем работу с ошибкой
 	if (hThreadArray[1] == NULL)

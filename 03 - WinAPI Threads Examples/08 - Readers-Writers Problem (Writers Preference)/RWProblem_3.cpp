@@ -1,308 +1,296 @@
 ﻿////////////////////////////////////////////////////////////////////////////////
 // Решение проблемы читателей-писателей с приоритетом писателей
 // (писатель не должен ждать дольше чем необходимо на завершение текущих
-// операций чтения)
+// операций чтения).
+//
+// В качестве разделяемого ресурса используется обычный буфер.
 //
 // Процесс-читатель проверяет валидность данных при чтении (все элементы буфера
 // содержат одинаковый символ), в случае ошибки - выводится сообщение (ошибок
 // быть не должно).
 //
 // Процесс-писатель просто обновляет данные в буфере.
-//
+// 
 // По результатам работы программы подсчитывается количество произведенных
 // операций чтения/записи за время TOTAL_TIME_MS
+//
+// С данным примером можно провести следующие эксперименты:
+//  1. Изменить количественное соотношение между потоками читателями и писателями
+//     и посмотреть как изменятся результаты.
 ////////////////////////////////////////////////////////////////////////////////
 
 #include <windows.h>
 #include <stdio.h>
 #include <climits>
+#include <ctime>
 
 const unsigned int N_READERS        = 4;            // Количество задач-читателей
 const unsigned int N_WRITERS        = 4;            // Количество задач-писателей
-const DWORD TOTAL_TIME_MS           = 5000;         // Общее время работы программы
-const DWORD READ_TIME_MS            = 10;            // Время чтения в мс (эмуляция долгих операций)
-const DWORD WRITE_TIME_MS           = 10;            // Время записи в мс (эмуляция долгих операций)
+const DWORD	MUTEX_WAIT_TIME_MS      = 1000;         // Время ожидания мьютекса в мс
+const DWORD	TOTAL_TIME_MS           = 10000;        // Общее время работы программы
+const DWORD	READ_TIME_MS            = 1;            // Время чтения в мс (эмуляция долгих операций)
+const DWORD	WRITE_TIME_MS           = 1;            // Время записи в мс (эмуляция долгих операций)
 
-const unsigned int BUFFER_SIZE      = 20;           // Размер буфера
-char buffer[BUFFER_SIZE] = "AAAAAAAAAAAAAAAAAAA";   // Буфер - играет роль общей области памяти
+const unsigned int BUFFER_SIZE      = 50;           // Размер буфера
+char buffer[BUFFER_SIZE];                           // Буфер - играет роль общей области памяти
 
 bool abort_all_threads              = false;        // Признак завершения работы всех потоков
-unsigned int read_count             = 0;            // Количество потоков-читателей имеющих доступ на чтение к ресурсу
-unsigned int write_count            = 0;            // Количество потоков-писателей ожидающих завершения текущих операций чтения
 
-HANDLE  hReadCountMutex;                            // Дескриптор мьютекса для доступа к переменной read_count
-HANDLE  hWriteCountMutex;                           // Дескриптор мьютекса для доступа к переменной write_count
-
-HANDLE  hReadSemaphore;                             // Дескриптор семафора для блокировки чтения
-HANDLE  hWriteSemaphore;                            // Дескриптор семафора для блокировки записи
-
-HANDLE  hThreadArray[N_READERS + N_WRITERS];        // Дескрипторы потоков
-DWORD   dwReadersThreadID[N_READERS];               // Идентификаторы потоков-читателей
-DWORD   dwWritersThreadID[N_WRITERS];               // Идентификаторы потоков-писателей
+int readCount                       = 0;            // Количество читателей, имеющих доступ к ресурсу
+int writeCount                      = 0;            // Количество писателей, ждущих доступ к ресурсу
+HANDLE hReadMutex;                                  // Дескриптор мьютекса
+HANDLE hWriteMutex;                                 // Дескриптор мьютекса
+HANDLE hRead;                                       // Дескриптор семафора
+HANDLE hWrite;                                      // Дескриптор семафора
+HANDLE hThreadArray[N_READERS + N_WRITERS];         // Дескрипторы потоков
+DWORD dwReadersThreadID[N_READERS];                 // Идентификаторы потоков-читателей
+DWORD dwWritersThreadID[N_WRITERS];                 // Идентификаторы потоков-писателей
+LARGE_INTEGER PERFORMANCE_COUNTER_FREQUENCY;        // Частота таймера для измерения производительности
 
 unsigned int N_Reads[N_READERS];                    // Количество произведенных операций чтения
 unsigned int N_Writes[N_WRITERS];                   // Количество произведенных операций записи
 
-// Функция потока-писателя
-DWORD WINAPI WriterThreadFunction(LPVOID lpParam) 
+////////////////////////////////////////////////////////////////////////////////
+// Функция эмуляции задержки операций ввода-вывода
+////////////////////////////////////////////////////////////////////////////////
+void DelayMS(DWORD time)
 {
-	unsigned int *Num_Writes = reinterpret_cast<unsigned int*>(lpParam);
+	LARGE_INTEGER t0, t1;
+	QueryPerformanceCounter(&t0);
+	QueryPerformanceCounter(&t1);
+	const auto dt = PERFORMANCE_COUNTER_FREQUENCY.QuadPart / 1000 * time;
+	while (true)
+	{
+		if (t1.QuadPart - t0.QuadPart >= dt) return;
+		QueryPerformanceCounter(&t1);
+	}
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// Эмуляция операции записи
+////////////////////////////////////////////////////////////////////////////////
+void WriteOperation(unsigned int* counter = NULL)
+{
+	// записываем данные в память
+	char ch = buffer[0] == 'Z' ? 'A' : buffer[0] + 1;
+	for (unsigned int i = 0; i < BUFFER_SIZE; ++i)
+		buffer[i] = ch;
+
+	// увеличиваем счетчик операций
+	if (counter != NULL)
+		++(*counter);
+
+	// задержка для эмуляции длительности операции
+	DelayMS(WRITE_TIME_MS);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// Эмуляция операции чтения с проверкой целостности буфера
+////////////////////////////////////////////////////////////////////////////////
+void ReadOperation(unsigned int* counter = NULL)
+{
+	char local_buffer[BUFFER_SIZE + 1];
+	local_buffer[BUFFER_SIZE] = 0;
+
+	// читаем данные из памяти
+	bool error = false;
+	for (unsigned int i = 0; i < BUFFER_SIZE; ++i)
+	{
+		local_buffer[i] = buffer[i];
+		error |= i > 0 && local_buffer[i] != local_buffer[i - 1];
+	}
+
+	// увеличиваем счетчик операций
+	if (counter != NULL)
+		++(*counter);
+
+	// если была ошибка, выводим сообщение об ошибке
+	if (error)
+	{
+		printf_s("Reader thread %5d detect buffer corruption: %s\n",
+			GetCurrentThreadId(), local_buffer);
+	}
+
+	// задержка для эмуляции длительности операции
+	DelayMS(READ_TIME_MS);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// Операция захвата объекта (мьютекса / семафора)
+////////////////////////////////////////////////////////////////////////////////
+int P(HANDLE hObject)
+{
+	while (true)
+	{
+		// пытаемся захватить мьютекс
+		DWORD dwWaitResult = WaitForSingleObject(
+			hObject,                // дескриптор мьютекса
+			MUTEX_WAIT_TIME_MS);    // ждем в течении указанного времени
+
+		switch (dwWaitResult)
+		{
+		case WAIT_OBJECT_0:  // Мьютекс успешно захвачен
+			return 0;
+
+		case WAIT_ABANDONED: // Один из процессов завершился не освободив мьютекс
+			printf_s("Mutex abandoned\n");
+			return 1;
+
+		case WAIT_FAILED:    // Системная ощибка
+			return 2;
+
+		case WAIT_TIMEOUT:   // Истекло время ожидания
+			printf_s("Thread %5d can not lock mutex during %d ms\n", GetCurrentThreadId(), MUTEX_WAIT_TIME_MS);
+		}
+	}
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// Макрос для проверки на ошибку при захвате объекта
+////////////////////////////////////////////////////////////////////////////////
+#define P_CHECKED(hObject)    \
+{                             \
+	int res = P(hObject);     \
+	if (res != 0) return res; \
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// Операция освобождения мьютекса
+////////////////////////////////////////////////////////////////////////////////
+void V(HANDLE hMutex)
+{
+	ReleaseMutex(hMutex);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// Операция освобождения мьютекса
+////////////////////////////////////////////////////////////////////////////////
+void V2(HANDLE hSemaphore)
+{
+	ReleaseSemaphore(hSemaphore, 1, NULL);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// Функция потока-писателя
+////////////////////////////////////////////////////////////////////////////////
+DWORD WINAPI WriterThreadFunction(LPVOID lpParam)
+{
+	unsigned int *numWrites = reinterpret_cast<unsigned int*>(lpParam);
 
 	while (!abort_all_threads)
 	{
-		// пытаемся захватить мьютекс для доступа к переменной write_count
-		DWORD dwWaitResult = WaitForSingleObject( 
-			hWriteCountMutex,   // дескриптор мьютекса
-			INFINITE);          // ждем в течении бесконечного времени
- 
-		// проверка на ошибку
-		if (dwWaitResult != WAIT_OBJECT_0)
-			return 1;
+		P_CHECKED(hWriteMutex);
+		++writeCount;
+		if (writeCount == 1)
+			P_CHECKED(hRead);
+		V(hWriteMutex);
 
-		// операции в данном блоке выполняются при захваченом мьютексе hWriteCountMutex
-		{
-			// увеличиваем счетчик количества потоков ожидающих доступа на чтание
-			++write_count;
+		P_CHECKED(hWrite);
+		WriteOperation(numWrites);
+		V2(hWrite);
 
-			// если это первый поток ожидающий записи, то блокируем операции чтения
-			if (write_count == 1)
-			{
-				dwWaitResult = WaitForSingleObject( 
-					hReadSemaphore,     // дескриптор семафора
-					INFINITE);          // ждем в течении бесконечного времени
-	 
-				// проверка на ошибку
-				if (dwWaitResult != WAIT_OBJECT_0)
-				{
-					ReleaseMutex(hWriteCountMutex);
-					return 1;
-				}
-			}
-		}
-
-		// освобождаем мьютекс для доступа к переменной write_count
-		ReleaseMutex(hWriteCountMutex);
-
-		// захватываем семафор для записи
-		dwWaitResult = WaitForSingleObject( 
-			hWriteSemaphore,    // дескриптор семафора
-			INFINITE);          // ждем в течении бесконечного времени
-
-		// проверка на ошибку
-		if (dwWaitResult != WAIT_OBJECT_0)
-			return 1;
-
-		////////////////////////////////////////////////////////////////////////
-		/// ЗАПИСЬ ДАННЫХ
-		////////////////////////////////////////////////////////////////////////
-		{
-			// записываем данные в память
-			char ch = buffer[0] == 'Z' ? 'A' :  buffer[0] + 1;
-			for (unsigned int i = 0; i < BUFFER_SIZE - 1; ++i)
-				buffer[i] = ch;
-
-			// увеличиваем счетчик операций записи
-			++(*Num_Writes);
-
-			// Эмулируем продолжительность операции записи
-			if (WRITE_TIME_MS > 0)
-				Sleep(WRITE_TIME_MS);
-		}
-		////////////////////////////////////////////////////////////////////////
-
-		// освобождаем семафор для записи
-		ReleaseSemaphore(hWriteSemaphore, 1, NULL);
-
-		// пытаемся захватить мьютекс для доступа к переменной write_count
-		dwWaitResult = WaitForSingleObject( 
-			hWriteCountMutex,   // дескриптор мьютекса
-			INFINITE);          // ждем в течении бесконечного времени
- 
-		// проверка на ошибку
-		if (dwWaitResult != WAIT_OBJECT_0)
-			return 1;
-
-		// операции в данном блоке выполняются при захваченом мьютексе hWriteCountMutex
-		{
-			// уменьшаем счетчик количества потоков ожидающих доступа на чтание
-			--write_count;
-
-			// если это последний поток-читатель, то снимаем блокировку на запись
-			if (write_count == 0)
-				ReleaseSemaphore(hReadSemaphore, 1, NULL);
-		}
-
-		// освобождаем мьютекс для доступа к переменной write_count
-		ReleaseMutex(hWriteCountMutex);
+		P_CHECKED(hWriteMutex);
+		--writeCount;
+		if (writeCount == 0)
+			V2(hRead);
+		V(hWriteMutex);
 	}
 
 	return 0;
 }
 
+////////////////////////////////////////////////////////////////////////////////
 // Функция потока-читателя
+////////////////////////////////////////////////////////////////////////////////
 DWORD WINAPI ReaderThreadFunction(LPVOID lpParam)
 {
-	unsigned int *Num_Reads = reinterpret_cast<unsigned int*>(lpParam);
-
-	char local_buffer[BUFFER_SIZE];
+	unsigned int *numReads = reinterpret_cast<unsigned int*>(lpParam);
 
 	while (!abort_all_threads)
 	{
-		// пытаемся захватить семафор на чтение
-		DWORD dwWaitResult = WaitForSingleObject(
-			hReadSemaphore,     // дескриптор мьютекса
-			INFINITE);          // ждем в течении бесконечного времени
- 
-		// проверка на ошибку
-		if (dwWaitResult != WAIT_OBJECT_0)
-			return 1;
+		P_CHECKED(hRead);
 
-		// операции в данном блоке выполняются только при захваченом семафоре на чтение
-		{
-			// пытаемся захватить мьютекс для доступа к переменной read_count
-			DWORD dwWaitResult = WaitForSingleObject( 
-				hReadCountMutex,    // дескриптор мьютекса
-				INFINITE);          // ждем в течении бесконечного времени
-	 
-			// проверка на ошибку
-			if (dwWaitResult != WAIT_OBJECT_0)
-				return 1;
+		P_CHECKED(hReadMutex);
+		++readCount;
+		if (readCount == 1)
+			P_CHECKED(hWrite);
+		V(hReadMutex);
 
-			// операции в данном блоке выполняются при захваченом мьютексе hReadCountMutex
-			{
-				// увеличиваем счетчик количества потоков имеющих доступ на чтение
-				++read_count;
+		V2(hRead);
+		ReadOperation(numReads);
 
-				// если это первый поток читатель, то блокируем запись
-				if (read_count == 1)
-				{
-					dwWaitResult = WaitForSingleObject( 
-						hWriteSemaphore,    // дескриптор семафора
-						INFINITE);          // ждем в течении бесконечного времени
-		 
-					// проверка на ошибку
-					if (dwWaitResult != WAIT_OBJECT_0)
-					{
-						ReleaseMutex(hReadCountMutex);
-						return 1;
-					}
-				}
-			}
-
-			// освобождаем мьютекс для доступа к переменной read_count
-			ReleaseMutex(hReadCountMutex);
-		}
-
-		// освобождаем семафор для чтения
-		ReleaseSemaphore(hReadSemaphore, 1, NULL);
-
-		//////////////////////////////////////////////////////////////////////////////
-		/// ЧТЕНИЕ ДАННЫХ
-		//////////////////////////////////////////////////////////////////////////////
-		{
-			// читаем данные из памяти
-			bool error = false;
-			for (unsigned int i = 0; i < BUFFER_SIZE; ++i)
-			{
-				local_buffer[i] = buffer[i];
-				error |= i > 0 && i < BUFFER_SIZE-1 && local_buffer[i] != local_buffer[i-1];
-			}
-
-			// если была ошибка, выводим сообщение об ошибке
-			if (error)
-				printf_s("Reader thread %4d detect buffer corruption: %s\n", GetCurrentThreadId(), local_buffer);
-			
-			// увеличиваем счетчик операций чтения
-			++(*Num_Reads);
-
-			// Эмулируем продолжительность операции чтения
-			if (READ_TIME_MS > 0)
-				Sleep(READ_TIME_MS);
-		}
-		//////////////////////////////////////////////////////////////////////////////
-
-		// пытаемся захватить мьютекс для доступа к переменной read_count
-		dwWaitResult = WaitForSingleObject(
-			hReadCountMutex,    // дескриптор мьютекса
-			INFINITE);          // ждем в течении бесконечного времени
- 
-		// проверка на ошибку
-		if (dwWaitResult != WAIT_OBJECT_0)
-			return 1;
-
-		// операции в данном блоке выполняются при захваченом мьютексе hReadCountMutex
-		{
-
-			// уменьшаем счетчик количества потоков имеющих доступ на чтение
-			--read_count;
-
-			// если это последний поток-читатель, то снимаем блокировку на запись
-			if (read_count == 0)
-				ReleaseSemaphore(hWriteSemaphore, 1, NULL);
-		}
-
-		// освобождаем мьютекс для доступа к переменной read_count
-		ReleaseMutex(hReadCountMutex);
+		P_CHECKED(hReadMutex);
+		--readCount;
+		if (readCount == 0)
+			V2(hWrite);
+		V(hReadMutex);
 	}
+
 	return 0;
 }
 
+////////////////////////////////////////////////////////////////////////////////
+// Основная программа
+////////////////////////////////////////////////////////////////////////////////
 int main(int argc, char* argv[])
 {
-	// Создаем мьютекс для разграничения доступа к переменной read_count
-	hReadCountMutex = CreateMutex(
+	// Получаем частоту таймера для измерения производительности
+	QueryPerformanceFrequency(&PERFORMANCE_COUNTER_FREQUENCY);
+
+	// Инициализируем буфер
+	for (size_t i = 0; i < BUFFER_SIZE; ++i)
+		buffer[i] = 'A';
+
+	// Создаем мьютекс
+	hReadMutex = CreateMutex(
 		NULL,                       // использовать настройки безопасности по умолчанию
 		FALSE,                      // создать без захвата мьютекса текущим потоком
 		NULL                        // создать объект без имени
 	);
-
-	// Создать мьютекс не удалось - выводим сообщение об ошибке и завершаем программу
-	if (hReadCountMutex == NULL) 
+	if (hReadMutex == NULL)
 	{
+		// Создать мьютекс не удалось - выводим сообщение об ошибке и завершаем программу
 		printf_s("CreateMutex failed (%d)\n", GetLastError());
 		ExitProcess(1);
 	}
 
-	// Создаем мьютекс для разграничения доступа к переменной write_count
-	hWriteCountMutex = CreateMutex(
+	// Создаем мьютекс
+	hWriteMutex = CreateMutex(
 		NULL,                       // использовать настройки безопасности по умолчанию
 		FALSE,                      // создать без захвата мьютекса текущим потоком
 		NULL                        // создать объект без имени
 	);
-
-	// Создать мьютекс не удалось - выводим сообщение об ошибке и завершаем программу
-	if (hWriteCountMutex == NULL)
+	if (hWriteMutex == NULL)
 	{
+		// Создать мьютекс не удалось - выводим сообщение об ошибке и завершаем программу
 		printf_s("CreateMutex failed (%d)\n", GetLastError());
 		ExitProcess(1);
 	}
 
-	// Создаем семафор для блокировки операций чтения
-	hReadSemaphore = CreateSemaphore(
+	// Создаем семафор
+	hWrite = CreateSemaphore(
 		NULL,                       // использовать настройки безопасности по умолчанию
-		1,                          // первоначальное значение семафора
+		1,                          // начальное значение семафора
 		1,                          // максимальное значение семафора
 		NULL                        // создать объект без имени
 	);
-
-	// Создать семафор не удалось - выводим сообщение об ошибке и завершаем программу
-	if (hReadSemaphore == NULL)
+	if (hWrite == NULL)
 	{
+		// Создать семафор не удалось - выводим сообщение об ошибке и завершаем программу
 		printf_s("CreateSemaphore failed (%d)\n", GetLastError());
 		ExitProcess(1);
 	}
 
-	// Создаем семафор для блокировки операций записи
-	hWriteSemaphore = CreateSemaphore(
+	// Создаем семафор
+	hRead = CreateSemaphore(
 		NULL,                       // использовать настройки безопасности по умолчанию
-		1,                          // первоначальное значение семафора
+		1,                          // начальное значение семафора
 		1,                          // максимальное значение семафора
 		NULL                        // создать объект без имени
 	);
-
-	// Создать семафор не удалось - выводим сообщение об ошибке и завершаем программу
-	if (hWriteSemaphore == NULL)
+	if (hRead == NULL)
 	{
+		// Создать семафор не удалось - выводим сообщение об ошибке и завершаем программу
 		printf_s("CreateSemaphore failed (%d)\n", GetLastError());
 		ExitProcess(1);
 	}
@@ -319,14 +307,14 @@ int main(int argc, char* argv[])
 			ReaderThreadFunction,   // имя функции потока
 			&N_Reads[i],            // аргумент - количество операций чтения, произведенных потоком
 			0,                      // создать поток с флагами по умолчанию
-			&dwReadersThreadID[i]); // идентификатор потока
-
+			&dwReadersThreadID[i]   // идентификатор потока
+		);
 		// Если поток не был создан - завершаем работу с ошибкой
 		if (hThreadArray[i] == NULL)
 			ExitProcess(1);
 
 		// Выводим сообщение об успешном создании потока
-		printf_s("Reader thread %4d sucsessfully created\n", dwReadersThreadID[i]);
+		printf_s("Reader thread %5d sucsessfully created\n", dwReadersThreadID[i]);
 	}
 
 	// Создание потоков-писатлей
@@ -341,18 +329,19 @@ int main(int argc, char* argv[])
 			WriterThreadFunction,   // имя функции потока
 			&N_Writes[i],           // аргумент - количество операций записи, произведенных потоком
 			0,                      // создать поток с флагами по умолчанию
-			&dwWritersThreadID[i]); // идентификатор потока
-
+			&dwWritersThreadID[i]   // идентификатор потока
+		);
+		
 		// Если поток не был создан - завершаем работу с ошибкой
 		if (hThreadArray[N_READERS + i] == NULL)
 			ExitProcess(1);
 
 		// Выводим сообщение об успешном создании потока
-		printf_s("Writer thread %4d sucsessfully created\n", dwWritersThreadID[i]);
+		printf_s("Writer thread %5d sucsessfully created\n", dwWritersThreadID[i]);
 	}
 
-	// Ждем 5 секунд для получения результатов и выставляем флаг для завершения всех потоков
-	Sleep(5000);
+	// Ждем окончания эксперимента и выставляем флаг для завершения всех потоков
+	Sleep(TOTAL_TIME_MS);
 	abort_all_threads = true;
 
 	// Ожидаем завершения всех потоков
@@ -363,10 +352,10 @@ int main(int argc, char* argv[])
 		INFINITE);              // ждем в течении бесконечного времени
 
 	// Освобождаем дескрипторы
-	CloseHandle(hReadCountMutex);
-	CloseHandle(hWriteCountMutex);
-	CloseHandle(hReadSemaphore);
-	CloseHandle(hWriteSemaphore);
+	CloseHandle(hReadMutex);
+	CloseHandle(hWriteMutex);
+	CloseHandle(hRead);
+	CloseHandle(hWrite);
 	for (unsigned int i = 0; i < N_READERS + N_WRITERS; ++i)
 		CloseHandle(hThreadArray[i]);
 
@@ -374,7 +363,7 @@ int main(int argc, char* argv[])
 	unsigned int N_Reads_Total = 0;
 	for (unsigned int i = 0; i < N_READERS; ++i)
 	{
-		printf_s("Number of reads by thread %4d: %d\n", dwReadersThreadID[i], N_Reads[i]);
+		printf_s("Number of reads by thread %5d: %d\n", dwReadersThreadID[i], N_Reads[i]);
 		N_Reads_Total += N_Reads[i];
 	}
 	printf_s("Total number of reads: %d\n", N_Reads_Total);
@@ -383,7 +372,7 @@ int main(int argc, char* argv[])
 	unsigned int N_Writes_Total = 0;
 	for (unsigned int i = 0; i < N_WRITERS; ++i)
 	{
-		printf_s("Number of writes by thread %4d: %d\n", dwWritersThreadID[i], N_Writes[i]);
+		printf_s("Number of writes by thread %5d: %d\n", dwWritersThreadID[i], N_Writes[i]);
 		N_Writes_Total += N_Writes[i];
 	}
 	printf_s("Total number of writes: %d\n", N_Writes_Total);
