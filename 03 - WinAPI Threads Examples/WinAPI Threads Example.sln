@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
-VisualStudioVersion = 14.0.23107.0
+VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "01 - Create Threads", "01 - Create Threads\01 - Create Threads.vcxproj", "{058A4FBF-5E18-4BE5-A24C-0489107D5D41}"
 EndProject
@@ -22,6 +22,8 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "09 - Readers-Writers Problem (Fair Solution)", "09 - Readers-Writers Problem (Fair Solution)\09 - Readers-Writers Problem (Fair Solution).vcxproj", "{A8D28928-1BD6-4BE7-9234-5B3E4C926701}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "11 - Critical Section", "11 - Critical Section\11 - Critical Section.vcxproj", "{D478E167-92B0-42E2-9E95-959AF53A4AF8}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "10 - Readers-Writers Problem (Slim Reader-Writer Lock)", "10 - Readers-Writers Problem (Slim Reader-Writer Lock)\10 - Readers-Writers Problem (Slim Reader-Writer Lock).vcxproj", "{7241129B-928E-4D27-B775-E5A4BFA9C4E0}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -111,6 +113,14 @@ Global
 		{D478E167-92B0-42E2-9E95-959AF53A4AF8}.Release|x64.Build.0 = Release|x64
 		{D478E167-92B0-42E2-9E95-959AF53A4AF8}.Release|x86.ActiveCfg = Release|Win32
 		{D478E167-92B0-42E2-9E95-959AF53A4AF8}.Release|x86.Build.0 = Release|Win32
+		{7241129B-928E-4D27-B775-E5A4BFA9C4E0}.Debug|x64.ActiveCfg = Debug|x64
+		{7241129B-928E-4D27-B775-E5A4BFA9C4E0}.Debug|x64.Build.0 = Debug|x64
+		{7241129B-928E-4D27-B775-E5A4BFA9C4E0}.Debug|x86.ActiveCfg = Debug|Win32
+		{7241129B-928E-4D27-B775-E5A4BFA9C4E0}.Debug|x86.Build.0 = Debug|Win32
+		{7241129B-928E-4D27-B775-E5A4BFA9C4E0}.Release|x64.ActiveCfg = Release|x64
+		{7241129B-928E-4D27-B775-E5A4BFA9C4E0}.Release|x64.Build.0 = Release|x64
+		{7241129B-928E-4D27-B775-E5A4BFA9C4E0}.Release|x86.ActiveCfg = Release|Win32
+		{7241129B-928E-4D27-B775-E5A4BFA9C4E0}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
