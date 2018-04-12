@@ -1,0 +1,1 @@
+@g++ -std=c++11 -DPTHREAD_WIN32 %1 -lpthread -o %~n1.exe
