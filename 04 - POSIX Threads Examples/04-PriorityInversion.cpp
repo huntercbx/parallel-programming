@@ -23,13 +23,14 @@
 
 #include <pthread.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include "error_check.h"
 
 pthread_barrier_t   barrier;                        // барьер
 pthread_mutex_t     mutex;                          // мьютекс
 pthread_mutexattr_t mutex_attr;                     // атрибуты мьютекса
 
-const int           N_MID_PRIORITY_THREADS  = 1;    // количество потоков со средним приоритетом
+const int           N_MID_PRIORITY_THREADS  = 4;    // количество потоков со средним приоритетом
 
 ////////////////////////////////////////////////////////////////////////////////
 // вывод информации о диспетчеризации указанного потока
@@ -152,7 +153,7 @@ void * mid_priority_thread(void *x)
 	if (N_MID_PRIORITY_THREADS > 1)
 		printf("Mid priority thread started: %d\n", i);
 	else
-		printf("Mid priority thread started\n", i);
+		printf("Mid priority thread started\n");
 
 	// эмулируем вычислительный процесс
 	process_data(2000);
@@ -160,7 +161,7 @@ void * mid_priority_thread(void *x)
 	if (N_MID_PRIORITY_THREADS > 1)
 		printf("Mid priority thread ended: %d\n", i);
 	else
-		printf("Mid priority thread ended\n", i);
+		printf("Mid priority thread ended\n");
 
 	pthread_exit(0);
 }
@@ -239,7 +240,7 @@ int main(int argc, char *argv[])
 	// создаем низкоприоритетный поток
 	param.sched_priority = low_priority;
 	POSIX_CHECK_EXIT(pthread_attr_setschedparam(&pthread_attr, &param));
-	POSIX_CHECK_EXIT( pthread_create(
+	POSIX_CHECK_EXIT(pthread_create(
 		&threads[0],            // идентификатор потока
 		&pthread_attr,          // аттрибуты потока
 		&low_priority_thread,   // функция потока
@@ -252,7 +253,7 @@ int main(int argc, char *argv[])
 	// создаем высокоприоритетный поток
 	param.sched_priority = high_priority;
 	POSIX_CHECK_EXIT(pthread_attr_setschedparam(&pthread_attr, &param));
-	POSIX_CHECK_EXIT( pthread_create(
+	POSIX_CHECK_EXIT(pthread_create(
 		&threads[1],            // идентификатор потока
 		&pthread_attr,          // аттрибуты потока
 		&high_priority_thread,  // функция потока
@@ -269,7 +270,7 @@ int main(int argc, char *argv[])
 	for (int i = 0; i < N_MID_PRIORITY_THREADS; ++i)
 	{
 		thread_params[i] = i;
-		POSIX_CHECK_EXIT( pthread_create(
+		POSIX_CHECK_EXIT(pthread_create(
 			&threads[2+i],          // идентификатор потока
 			&pthread_attr,          // аттрибуты потока
 			&mid_priority_thread,   // функция потока
@@ -286,9 +287,9 @@ int main(int argc, char *argv[])
 	// ожидание завершения потоков
 	for (int i = 0; i < N_MID_PRIORITY_THREADS+2; ++i)
 	{
-		POSIX_CHECK( pthread_join(
+		POSIX_CHECK(pthread_join(
 			threads[i],             // идентификатор потока
-			NULL);                  // указатель на возвращаемое значение
+			NULL));                  // указатель на возвращаемое значение
 	}
 
 	// удаление структур

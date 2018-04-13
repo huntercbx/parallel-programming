@@ -25,6 +25,8 @@
 #include <string.h>
 #include <stdlib.h>
 
+#include "error_check.h"
+
 pthread_barrier_t	barrier;			// барьер
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -57,7 +59,8 @@ void * thread_funtion(void *x)
 	process_data(500);
 	clock_t t2 = clock();
 
-	printf("Thread end: %d (execution time = %g seconds)\n", i, static_cast<float>(t2-t1)/CLOCKS_PER_SEC);
+	printf("Thread end: %d (execution time = %g seconds)\n", i,
+		static_cast<float>(t2-t1)/CLOCKS_PER_SEC);
 	pthread_exit(0);
 }
 
@@ -93,60 +96,30 @@ int main(int argc, char *argv[])
 	pthread_attr_t	pthread_attr;			// атрибуты потоков
 
 	// инициализируем аттрибуты потоков
-	res = pthread_attr_init(&pthread_attr);
-	if (res != 0)
-	{
-		printf("pthread_attr_init failed (%d)\n", res);
-		return 0;
-	}
+	POSIX_CHECK_EXIT(pthread_attr_init(&pthread_attr));
 
 	// разрешаем дочерним потоки иметь собственную дисциплину диспетчеризации,
 	// которая может отличатся от дисциплины основного потока
-	res = pthread_attr_setinheritsched(&pthread_attr, PTHREAD_EXPLICIT_SCHED);
-	if (res != 0)
-	{
-		printf("pthread_attr_setinheritsched failed (%d)\n", res);
-		return 0;
-	}
+	POSIX_CHECK_EXIT(pthread_attr_setinheritsched(&pthread_attr, PTHREAD_EXPLICIT_SCHED));
 
 	// устанавливаем дисциплину диспетчеризации дочерних потоков
-	res = pthread_attr_setschedpolicy(&pthread_attr, policy);
-	if (res != 0)
-	{
-		printf("pthread_attr_setschedpolicy failed (%d)\n", res);
-		return 0;
-	}
+	POSIX_CHECK_EXIT(pthread_attr_setschedpolicy(&pthread_attr, policy));
 
 	param.sched_priority = (sched_get_priority_min(policy) + sched_get_priority_max(policy))/2;
-	res = pthread_attr_setschedparam(&pthread_attr, &param);
-	if (res != 0)
-	{
-		printf("pthread_attr_setschedparam failed (%d)\n", res);
-		return 0;
-	}
+	POSIX_CHECK_EXIT(pthread_attr_setschedparam(&pthread_attr, &param));
 
 	// инициализируем барьер
-	res = pthread_barrier_init(&barrier, NULL, 1 + n_threads);
-	if (res != 0)
-	{
-		printf("pthread_barrier_init failed (%d)\n", res);
-		return 0;
-	}
+	POSIX_CHECK_EXIT(pthread_barrier_init(&barrier, NULL, 1 + n_threads));
 
 	// создание потоков
 	for (int i = 0; i < n_threads; ++i)
 	{
 		treads_num[i] = i;
-		int res = pthread_create(
+		POSIX_CHECK_EXIT(pthread_create(
 			&threads[i],			// идентификатор потока
 			&pthread_attr,			// аттрибуты потока
 			&thread_funtion,		// функция потока
-			&treads_num[i]);		// аргумент, передаваемый в функцию потока (данные)
-		if (res != 0)
-		{
-			printf("pthread_create failed (%d)\n", res);
-			return 0;
-		}
+			&treads_num[i]));		// аргумент, передаваемый в функцию потока (данные)
 	}
 
 	// ждем запуска всех потоков
@@ -155,11 +128,9 @@ int main(int argc, char *argv[])
 	// ожидание завершения потоков
 	for (int i = 0; i < n_threads; ++i)
 	{
-		int res = pthread_join(
+		POSIX_CHECK(pthread_join(
 			threads[i],				// идентификатор потока
-			NULL);					// указатель на возвращаемое значение
-		if (res != 0)
-			printf("pthread_join failed (%d)\n", res);
+			NULL));					// указатель на возвращаемое значение
 	}
 
 	// удаление структур
