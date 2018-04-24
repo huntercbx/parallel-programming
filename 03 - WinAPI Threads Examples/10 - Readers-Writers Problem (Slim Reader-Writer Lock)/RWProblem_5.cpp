@@ -35,7 +35,7 @@ char buffer[BUFFER_SIZE];                           // Буфер - играет
 
 bool abort_all_threads              = false;        // Признак завершения работы всех потоков
 
-SRWLOCK lock;                                       // Указатель на блокировку чтения-записи
+SRWLOCK lock;                                       // Блокировка чтения-записи
 HANDLE hThreadArray[N_READERS + N_WRITERS];         // Дескрипторы потоков
 DWORD dwReadersThreadID[N_READERS];                 // Идентификаторы потоков-читателей
 DWORD dwWritersThreadID[N_WRITERS];                 // Идентификаторы потоков-писателей
