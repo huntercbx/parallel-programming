@@ -68,7 +68,7 @@ int main(int argc, char* argv[])
 	cl_program program = CreateAndBuildProgram("GPUFiltering.cl", context, device_id);
 
 	// Создание ядра в програме для запуска
-	cl_kernel kernel = clCreateKernel(program, "sobel_kernel", &err);
+	cl_kernel kernel = clCreateKernel(program, "sobel_kernel_shared", &err);
 	if (!kernel || err != CL_SUCCESS)
 	{
 		printf("Error: Failed to create compute kernel!\n");
