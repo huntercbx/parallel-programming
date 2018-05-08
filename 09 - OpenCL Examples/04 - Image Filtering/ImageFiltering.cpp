@@ -68,7 +68,7 @@ int main(int argc, char* argv[])
 	cl_program program = CreateAndBuildProgram("GPUFiltering.cl", context, device_id);
 
 	// Создание ядра в програме для запуска
-	cl_kernel kernel = clCreateKernel(program, "greyscale_kernel", &err);
+	cl_kernel kernel = clCreateKernel(program, "sobel_kernel", &err);
 	if (!kernel || err != CL_SUCCESS)
 	{
 		printf("Error: Failed to create compute kernel!\n");
@@ -97,11 +97,12 @@ int main(int argc, char* argv[])
 
 	// Запуск ядра с измерением времени его выполнения
 	cl_event kernelExecutionEvent;
-	const cl_uint workDimensions = 2;
-	size_t localWorkSize[workDimensions] = { 16, 16 };
+	const cl_uint workDimensions = 3;
+	size_t localWorkSize[workDimensions] = { 16, 16, 1 };
 	size_t globalWorkSize[workDimensions] = {
 		((width - 1) / localWorkSize[0] + 1) * localWorkSize[0],
-		((height - 1) / localWorkSize[1] + 1) * localWorkSize[1]
+		((height - 1) / localWorkSize[1] + 1) * localWorkSize[1],
+		3
 	};
 	OPENCL_CHECK(clEnqueueNDRangeKernel(commands, kernel,
 		workDimensions, nullptr, globalWorkSize, localWorkSize,
