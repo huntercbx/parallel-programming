@@ -9,6 +9,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "02 - Vectors Addition", "02
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "03 - Matrix Multiplication", "03 - Matrix Multiplication\03 - Matrix Multiplication.vcxproj", "{5E5DDFBC-014D-4959-A60C-4DCB3998DAD8}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "04 - Image Filtering", "04 - Image Filtering\04 - Image Filtering.vcxproj", "{C62C314B-8FD5-47E4-B3DB-D56AE20A39F2}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -41,6 +43,14 @@ Global
 		{5E5DDFBC-014D-4959-A60C-4DCB3998DAD8}.Release|x64.Build.0 = Release|x64
 		{5E5DDFBC-014D-4959-A60C-4DCB3998DAD8}.Release|x86.ActiveCfg = Release|Win32
 		{5E5DDFBC-014D-4959-A60C-4DCB3998DAD8}.Release|x86.Build.0 = Release|Win32
+		{C62C314B-8FD5-47E4-B3DB-D56AE20A39F2}.Debug|x64.ActiveCfg = Debug|x64
+		{C62C314B-8FD5-47E4-B3DB-D56AE20A39F2}.Debug|x64.Build.0 = Debug|x64
+		{C62C314B-8FD5-47E4-B3DB-D56AE20A39F2}.Debug|x86.ActiveCfg = Debug|Win32
+		{C62C314B-8FD5-47E4-B3DB-D56AE20A39F2}.Debug|x86.Build.0 = Debug|Win32
+		{C62C314B-8FD5-47E4-B3DB-D56AE20A39F2}.Release|x64.ActiveCfg = Release|x64
+		{C62C314B-8FD5-47E4-B3DB-D56AE20A39F2}.Release|x64.Build.0 = Release|x64
+		{C62C314B-8FD5-47E4-B3DB-D56AE20A39F2}.Release|x86.ActiveCfg = Release|Win32
+		{C62C314B-8FD5-47E4-B3DB-D56AE20A39F2}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
