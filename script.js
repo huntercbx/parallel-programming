@@ -5,10 +5,6 @@ if (window.FileReader && window.File) {
     alert('обновите браузер!');
 }
 
-var div = d3.select("body").append("div")
-    .attr("class", "tooltip")
-    .style("opacity", 0);
-
 var array = [],
     lanes = [],
     items = [];
@@ -89,7 +85,9 @@ function showUtilization() {
 }
 
 function startRender() {
-
+    var div = d3.select("body").append("div")
+        .attr("class", "tooltip")
+        .style("opacity", 0);
     var xTimeScale = d3.scale.linear()
         .domain([timeBegin, timeEnd])
         .range([0, width]);
@@ -234,7 +232,8 @@ function startRender() {
             })
             .attr("width", function(d) {
                 return xWidthScale(d.end) - xWidthScale(d.begin);
-            }).on("mouseover", function(d) {
+            })
+            .on("mouseover", function(d) {
                 if (!d.id)
                     return;
                 div.transition()
