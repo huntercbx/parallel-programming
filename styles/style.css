@@ -1,0 +1,73 @@
+.mini text {
+    font: 9px;
+}
+
+text {
+    font: 11px sans-serif;
+}
+
+.miniItem0 {
+    fill: rgba(199, 5, 238, 0.63);
+    stroke-width: 8;
+}
+
+.miniItem1 {
+    fill: rgb(94, 11, 48);
+    fill-opacity: .7;
+    stroke-width: 8;
+}
+
+.miniItem2 {
+    fill: rgb(16, 138, 160);
+    fill-opacity: 0.7;
+    stroke-width: 8;
+}
+
+.miniItem3 {
+    fill: rgb(228, 49, 49);
+    fill-opacity: 0.7;
+    stroke-width: 8;
+}
+
+.miniItem4 {
+    fill: rgb(160, 145, 16);
+    fill-opacity: 0.7;
+    stroke-width: 8;
+}
+
+.miniItem5 {
+    fill: rgb(54, 105, 214);
+    fill-opacity: 0.7;
+    stroke-width: 8;
+}
+
+.miniItem6 {
+    fill: rgb(27, 134, 63);
+    fill-opacity: 0.7;
+    stroke-width: 8;
+}
+
+.miniItem7 {
+    fill: rgb(126, 179, 95);
+    fill-opacity: 0.7;
+    stroke-width: 8;
+}
+
+.brush .extent {
+    stroke: rgb(85, 84, 84);
+    fill: rgb(12, 135, 250);
+    fill-opacity: 0.401;
+}
+
+div.tooltip {
+    position: absolute;
+    width: 20px;
+    color: azure;
+    height: 55px;
+    width: 100px;
+    padding: 8px;
+    font: 13px sans-serif;
+    background: rgb(18, 18, 18);
+    border-radius: 2px;
+    text-align: left;
+}
