@@ -1,4 +1,5 @@
 ### Зависимости
+- cmake
 - intel-tbb
 - opencv3
 
