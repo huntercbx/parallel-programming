@@ -24,7 +24,7 @@ int main(int argc, char *argv[])
 		int th_id = omp_get_thread_num();
 		#pragma omp critical
 		{
-			cout << "Hello World from thread " << th_id << '\n';
+			cout << "Hello Parallel World from thread " << th_id << '\n';
 		}
 
 		#pragma omp barrier

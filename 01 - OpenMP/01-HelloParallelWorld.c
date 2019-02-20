@@ -25,7 +25,7 @@ int main(int argc, char *argv[])
 		shared(nthreads)
 	{
 		th_id = omp_get_thread_num();
-		printf("Hello World from thread %d\n", th_id);
+		printf("Hello Parallel World from thread %d\n", th_id);
 
 		#pragma omp barrier
 
