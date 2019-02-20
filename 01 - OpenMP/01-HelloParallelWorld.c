@@ -20,7 +20,7 @@ int main(int argc, char *argv[])
 {
 	int th_id, nthreads;
 	#pragma omp parallel \
-    	num_threads(10) \
+		num_threads(10) \
 		private(th_id) \
 		shared(nthreads)
 	{
