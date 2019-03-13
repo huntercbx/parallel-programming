@@ -14,7 +14,7 @@
     <ProjectGuid>{03DCD621-B4AE-4B19-9653-C118CA47ACAF}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>My04ParallelReduce</RootNamespace>
-    <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.17763.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
