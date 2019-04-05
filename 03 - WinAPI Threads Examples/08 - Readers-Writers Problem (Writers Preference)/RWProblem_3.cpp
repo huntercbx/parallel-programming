@@ -217,6 +217,7 @@ DWORD WINAPI ReaderThreadFunction(LPVOID lpParam)
 		V(hReadMutex);
 
 		V2(hRead);
+
 		ReadOperation(numReads);
 
 		P_CHECKED(hReadMutex);

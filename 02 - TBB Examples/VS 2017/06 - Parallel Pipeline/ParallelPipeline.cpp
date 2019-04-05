@@ -270,7 +270,7 @@ int main(int argc, char** argv)
 		<< fps << " fps)" << endl;
 
 	// создание отдельных этапов конвейера и их объединение
-	tbb::filter_t<void, Mat>  f1(tbb::filter::serial_in_order, ReadFrameFunc(sourceVideo));
+	tbb::filter_t<void, Mat> f1(tbb::filter::serial_in_order, ReadFrameFunc(sourceVideo));
 	tbb::filter_t<Mat, Mat>  f2(tbb::filter::parallel, Filter1());
 	tbb::filter_t<Mat, Mat>  f3(tbb::filter::parallel, Filter2());
 	tbb::filter_t<Mat, void> f4(tbb::filter::serial_in_order, WriteFrameFunc(outputVideo));
