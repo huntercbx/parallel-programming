@@ -26,9 +26,9 @@ int fib_2(int n)
 	if (n < 2) return n;
 	int x, y;
 	#pragma omp task shared(x)
-	x = fib_1(n-1);
+	x = n < 30 ? fib_1(n-1) : fib_2(n-1);
 	#pragma omp task shared(y)
-	y = fib_1(n-2);
+	y = n < 30 ? fib_1(n-2) : fib_2(n-2);
 	#pragma omp taskwait
 	return x + y;
 }
