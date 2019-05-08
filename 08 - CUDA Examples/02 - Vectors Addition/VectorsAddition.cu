@@ -56,7 +56,7 @@ int main(int argc, char* argv[])
 	cudaMemcpy(dev_B, host_B, N * sizeof(int), cudaMemcpyHostToDevice);
 
 	// запуск вычислений на GPU
-	add_vectors_kernel<<<N,1>>>(dev_A, dev_B, dev_C);
+	add_vectors_kernel<<<N, 1>>>(dev_A, dev_B, dev_C);
 
 	// копирование результирующего вектора из видеопамяти в ОЗУ
 	cudaMemcpy(host_C, dev_C, N * sizeof(int), cudaMemcpyDeviceToHost);
@@ -65,6 +65,8 @@ int main(int argc, char* argv[])
 	cudaFree(dev_A);
 	cudaFree(dev_B);
 	cudaFree(dev_C);
+
+	cudaDeviceSynchronize();
 
 	// вывод результирующего вектора на экран
 	for (size_t i = 0; i < N; ++i)

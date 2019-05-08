@@ -149,8 +149,8 @@ main(int argc, char **argv)
 			deviceProp.maxTexture2DLayered[0], deviceProp.maxTexture2DLayered[1], deviceProp.maxTexture2DLayered[2]);
 
 
-		printf("  Total amount of constant memory:               %lu bytes\n", deviceProp.totalConstMem);
-		printf("  Total amount of shared memory per block:       %lu bytes\n", deviceProp.sharedMemPerBlock);
+		printf("  Total amount of constant memory:               %zu bytes\n", deviceProp.totalConstMem);
+		printf("  Total amount of shared memory per block:       %zu bytes\n", deviceProp.sharedMemPerBlock);
 		printf("  Total number of registers available per block: %d\n", deviceProp.regsPerBlock);
 		printf("  Warp size:                                     %d\n", deviceProp.warpSize);
 		printf("  Maximum number of threads per multiprocessor:  %d\n", deviceProp.maxThreadsPerMultiProcessor);
@@ -163,8 +163,8 @@ main(int argc, char **argv)
 			deviceProp.maxGridSize[0],
 			deviceProp.maxGridSize[1],
 			deviceProp.maxGridSize[2]);
-		printf("  Maximum memory pitch:                          %lu bytes\n", deviceProp.memPitch);
-		printf("  Texture alignment:                             %lu bytes\n", deviceProp.textureAlignment);
+		printf("  Maximum memory pitch:                          %zu bytes\n", deviceProp.memPitch);
+		printf("  Texture alignment:                             %zu bytes\n", deviceProp.textureAlignment);
 		printf("  Concurrent copy and kernel execution:          %s with %d copy engine(s)\n", (deviceProp.deviceOverlap ? "Yes" : "No"), deviceProp.asyncEngineCount);
 		printf("  Run time limit on kernels:                     %s\n", deviceProp.kernelExecTimeoutEnabled ? "Yes" : "No");
 		printf("  Integrated GPU sharing Host Memory:            %s\n", deviceProp.integrated ? "Yes" : "No");

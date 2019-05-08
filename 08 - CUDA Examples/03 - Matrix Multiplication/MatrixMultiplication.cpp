@@ -58,7 +58,7 @@ int main(int argc, char* argv[])
 
 	for (size_t row = 0; row < L; ++row)
 		for (size_t col = 0; col < M; ++col)
-			host_B[row*M + col] = 2.0f;
+			host_B[row*M + col] = 1.0f;
 
 	cudaEvent_t evt1, evt2, evt3, evt4, evt5, evt6;
 	cudaEventCreate(&evt1);
@@ -98,7 +98,7 @@ int main(int argc, char* argv[])
 	cudaEventRecord(evt6, 0);
 	cudaEventSynchronize(evt6);
 
-	printf("Matricies dimensions:                [%d x %d] * [%d x %d]\n", N, L, L, M);
+	printf("Matricies dimensions:                [%zd x %zd] * [%zd x %zd]\n", N, L, L, M);
 	float elapsedTime;
 	cudaEventElapsedTime(&elapsedTime, evt1, evt2);
 	printf("Video memory allocation:             %g ms\n", elapsedTime);
